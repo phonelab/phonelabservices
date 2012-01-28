@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">PhonelabServices</string>
-    <string name="phonelab_controller_process">edu.buffalo.cse.phonelab.phonelabservices.phonelabcontroller</string>
-    <string name="status_monitor_process">edu.buffalo.cse.phonelab.phonelabservices.statusmonitor</string>
-    <string name="data_logger_process">edu.buffalo.cse.phonelab.phonelabservices.datalogger</string>
+
+    <string name="hello">Hello World, PhoneLabMainView!</string>
+    <string name="app_name">PhoneLab</string>
 
 </resources>
