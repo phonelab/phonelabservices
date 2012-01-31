@@ -16,6 +16,7 @@ import android.app.IntentService;
 import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
@@ -195,6 +196,71 @@ public class MessageService extends IntentService {
 			statusMonitorIntent.putExtra("value", cursor.getString(cursor.getColumnIndex("value")));
 			this.startService(statusMonitorIntent);
 		}
+	}
+	
+	/**
+	 * Used to send manually start intents using android.intent.action.MAIN. 
+	 * 
+	 * @param app the phonelab Application
+	 * @param dbAdapter the hook to device database
+	 *            
+	 * @author rishi baldawa
+	 */
+	private void startingapplication(PhoneLabApplication app, DatabaseAdapter dbAdapter) {
+		//Runtime.getRuntime().exec("am start -a andriod.intent.action.MAIN -n  " + intentName);
+		
+		Log.i(getClass().getSimpleName(), "Starting " + app.getName() + " now...");
+		
+		//Running the App
+		Intent startAppIntent = new Intent(Intent.ACTION_MAIN);
+		PackageManager manager = getPackageManager();
+		try{
+			startAppIntent = manager.getLaunchIntentForPackage(app.getPackageName());
+		} catch( Exception e ) {
+			e.printStackTrace();
+			Log.w(getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
+		}
+		startAppIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+		startActivity(startAppIntent);
+		
+		
+		//TODO notify database ??
+		
+		return;
+	}
+	
+	
+	/**
+	 * Used to send manually stop intents using android.intent.action.MAIN. 
+	 * 
+	 * 
+	 * @param app 
+	 * 				the phonelab Application
+	 * @param dbAdapter 
+	 * 				the hook to device database
+	 *            
+	 * @author rishi baldawa
+	 */
+	private void stoppingapplication(PhoneLabApplication app, DatabaseAdapter dbAdapter) {
+		//Runtime.getRuntime().exec("am start -a andriod.intent.action.MAIN -n  " + intentName);
+		
+		Log.i(getClass().getSimpleName(), "Stopping " + app.getName() + " now...");
+		
+		//Running the App
+		Intent stopAppIntent = new Intent(Intent.ACTION_MAIN);
+		PackageManager manager = getPackageManager();
+		try{
+			stopAppIntent = manager.getLaunchIntentForPackage(app.getPackageName());
+		} catch( Exception e ) {
+			e.printStackTrace();
+			Log.w(getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
+		}
+		stopAppIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+		stopService(stopAppIntent);
+		
+		//TODO notify database ??
+		
+		return;
 	}
 }
 
