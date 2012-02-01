@@ -31,7 +31,6 @@ public class StatusMonitor extends Service {
 		extras = intent.getExtras();
 		long value = Long.parseLong(extras.getString("value"));
 		String units = extras.getString("units");
-		//String setBy = extras.getString("setby");
 
 		Log.i(getClass().getSimpleName(), "Value: " + value + " - unit: " + units);
 
