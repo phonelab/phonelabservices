@@ -5,7 +5,7 @@
  * should not be modified by hand.
  */
 
-package edu.buffalo.cse.phonelab.controller;
+package edu.buffalo.cse.phonelab.phonelabservices;
 
 public final class R {
     public static final class attr {

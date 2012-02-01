@@ -62,7 +62,7 @@ public class MessageService extends IntentService {
 							if (cursor.moveToFirst()) {//App exists
 								if (app.getAction().equals("update")) {
 									updateApplication(app, dbAdapter);
-								} else if (app.getAction().equals("remove")) {
+								} else if (app.getAction().equals("uninstall")) {
 									removeapplication(app, dbAdapter);
 								} 
 							} else {//No such app exists
@@ -110,7 +110,7 @@ public class MessageService extends IntentService {
 					e.printStackTrace();
 				}
 				
-				Log.i(getClass().getSimpleName(), dbAdapter.toString());
+				Log.i(getClass().getSimpleName(), dbAdapter.toString()); 
 				dbAdapter.close();
 			}
 		} else if (message.equals("get_device_info")) {
@@ -123,7 +123,7 @@ public class MessageService extends IntentService {
 			uploadDeviceStatus.uploadDeviceStatus(getApplicationContext(), DEVICE_STATUS_UPLOAD_URL);
 		} else if (message.equals("flash")) {
 			
-		} else if (message.equals("upload_manifest")) {
+		} else if (message.equals("upload_manifest")) { 
 			//Send updated manifest to the server
 			UploadFile uploadManifest = new UploadFile();
 			uploadManifest.upload(getApplicationContext(), MANIFEST_UPLOAD_URL, "manifest.xml");
@@ -133,33 +133,41 @@ public class MessageService extends IntentService {
 	}
 	
 	public void installApplication (PhoneLabApplication app, DatabaseAdapter dbAdapter) {
-		if (DownloadFile.downloadToDirectory(APP_DOWNLOAD_URL + app.getName() + ".apk", Environment.getExternalStorageDirectory() + "/" + app.getName() + ".apk")) {
+		if (DownloadFile.downloadToDirectory(APP_DOWNLOAD_URL + app.getDownload(), Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
 			Log.i(getClass().getSimpleName(), "Installing " + app.getName() + " now...");
-			//Runtime.getRuntime().exec("/data/data/com.phonelab.controller/install " + Environment.getExternalStorageDirectory() + "/" + app.getName() + ".apk " + "/data/app/" + app.getName() + ".apk");
-			String fileName = Environment.getExternalStorageDirectory() + "/" + app.getName() + ".apk";
+			
+			String fileName = Environment.getExternalStorageDirectory() + "/" + app.getDownload();
 			Intent intent = new Intent(Intent.ACTION_VIEW);
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			intent.setDataAndType(Uri.fromFile(new File(fileName)), "application/vnd.android.package-archive");
 			startActivity(intent);
+			
 			//After installed
 			ContentValues values = new ContentValues();
 			values.put("package_name", app.getPackageName());
 			values.put("name", app.getName());
 			values.put("description", app.getDescription());
 			values.put("type", app.getType());
-			values.put("download_url", app.getDownload());
+			values.put("start_time", app.getStartTime());
+			values.put("end_time", app.getEndTime());
+			values.put("download", app.getDownload());
 			values.put("version", app.getVersion());
 			values.put("action", app.getAction());
 			dbAdapter.insertEntry(values, 1);
+			
+			if (app.getType().equals("background")) {//start it in the background
+				//startingapplication(app, dbAdapter);
+			} else if (app.getType().equals("interactive")) {//notify user
+				
+			}
 		}
 	}
 	
 	private void updateApplication(PhoneLabApplication app, DatabaseAdapter dbAdapter) {
-		if (DownloadFile.downloadToDirectory(APP_DOWNLOAD_URL + app.getName() + ".apk", Environment.getExternalStorageDirectory() + "/" + app.getName() + ".apk")) {
+		if (DownloadFile.downloadToDirectory(APP_DOWNLOAD_URL + app.getName() + ".apk", Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
 			Log.i(getClass().getSimpleName(), "Updating " + app.getName() + " now...");
 			//Update here...
-			
-			String fileName = Environment.getExternalStorageDirectory() + "/" + app.getName() + ".apk";
+			String fileName = Environment.getExternalStorageDirectory() + "/" + app.getDownload();
 			Intent intent = new Intent(Intent.ACTION_VIEW);
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			intent.setDataAndType(Uri.fromFile(new File(fileName)), "application/vnd.android.package-archive");
@@ -170,7 +178,9 @@ public class MessageService extends IntentService {
 			values.put("name", app.getName());
 			values.put("description", app.getDescription());
 			values.put("type", app.getType());
-			values.put("download_url", app.getDownload());
+			values.put("start_time", app.getStartTime());
+			values.put("end_time", app.getEndTime());
+			values.put("download", app.getDownload());
 			values.put("version", app.getVersion());
 			values.put("action", app.getAction());
 			dbAdapter.update(values, 1, "package_name='" + app.getPackageName() + "'");

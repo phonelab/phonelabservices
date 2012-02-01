@@ -14,6 +14,8 @@ public class PhoneLabApplication {
 	private String download;
 	private String version;
 	private String action;
+	private String startTime;
+	private String endTime;
 	
 	public String getIntentName() {
 		return intentName;
@@ -70,6 +72,19 @@ public class PhoneLabApplication {
 		this.action = action;
 	}
 	
+	
+	public String getStartTime() {
+		return startTime;
+	}
+	public void setStartTime(String startTime) {
+		this.startTime = startTime;
+	}
+	public String getEndTime() {
+		return endTime;
+	}
+	public void setEndTime(String endTime) {
+		this.endTime = endTime;
+	}
 	public String toString() {
 		return "intent_name: " + intentName + "\n" +
 				"package_name: " + packageName + "\n" +

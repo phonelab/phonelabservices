@@ -12,7 +12,7 @@ import android.util.Log;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
 	private static final int DATABASE_VERSION = 1;
-	private static final String DATABASE_NAME = "phonelab";
+	private static final String DATABASE_NAME = "phonelab_v_1";
 
 	private String deviceId = "";
 
@@ -35,8 +35,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 		createSql = "create table if not exists application ("
 				+ "package_name TEXT PRIMARY KEY, name TEXT," 
-				+ "description TEXT, type TEXT," 
-				+ "download_url TEXT, version TEXT, action TEXT)";
+				+ "intent_name TEXT, description TEXT, type TEXT,"
+				+ "start_time TIMESTAMP, end_time TIMESTAMP,"
+				+ "download TEXT, version TEXT, action TEXT)";
 		db.execSQL(createSql);
 
 		createSql = "create table if not exists status_monitor_parameter ("

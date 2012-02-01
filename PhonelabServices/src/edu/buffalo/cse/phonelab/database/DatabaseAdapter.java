@@ -121,9 +121,12 @@ public class DatabaseAdapter {
 		while (cursor2.moveToNext()) {
 			strToReturn += "Name= " + cursor2.getString(cursor2.getColumnIndex("name")) 
 					+ "\nPackageName= " +  cursor2.getString(cursor2.getColumnIndex("package_name"))
+					+ "\\nIntentName= " +  cursor2.getString(cursor2.getColumnIndex("intent_name"))
 					+ "\nDescription= " + cursor2.getString(cursor2.getColumnIndex("description"))
 					+ "\nType= " + cursor2.getString(cursor2.getColumnIndex("type"))
-					+ "\nDownloadUrl= " + cursor2.getString(cursor2.getColumnIndex("download_url"))
+					+ "\nStartTime= " + cursor2.getString(cursor2.getColumnIndex("start_time"))
+					+ "\nEndTime= " + cursor2.getString(cursor2.getColumnIndex("end_time"))
+					+ "\nDownloadUrl= " + cursor2.getString(cursor2.getColumnIndex("download"))
 					+ "\nVersion= " + cursor2.getString(cursor2.getColumnIndex("version"))
 					+ "\nAction= " + cursor2.getString(cursor2.getColumnIndex("action"))
 					+ "\n****\n";

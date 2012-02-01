@@ -3,15 +3,14 @@
  */
 package edu.buffalo.cse.phonelab.utilities;
 
-import edu.buffalo.cse.phonelab.controller.PhoneLabMainView;
-import edu.buffalo.cse.phonelab.controller.R;
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.telephony.TelephonyManager;
+import edu.buffalo.cse.phonelab.phonelabservices.PhoneLabMainView;
+import edu.buffalo.cse.phonelab.phonelabservices.R;
 
 public class Util {
 

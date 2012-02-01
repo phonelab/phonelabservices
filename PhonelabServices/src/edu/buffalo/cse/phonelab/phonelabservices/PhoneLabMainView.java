@@ -1,7 +1,7 @@
 /**
  * @author fatih
  */
-package edu.buffalo.cse.phonelab.controller;
+package edu.buffalo.cse.phonelab.phonelabservices;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -50,7 +50,7 @@ public class PhoneLabMainView extends Activity {
 				isSynced = true;
 			}
 		}
-		
+		 
 		cursor.close();
 		dbAdapter.close();
 		

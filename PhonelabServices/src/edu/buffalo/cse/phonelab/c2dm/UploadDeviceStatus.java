@@ -51,10 +51,12 @@ public class UploadDeviceStatus {
 				httpost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 				response = httpclient.execute(httpost,responseHandler);
 				Log.i(getClass().getSimpleName(), "Response: \n" + response);
-				if (response.length() > 0){
 
-				} else {
-
+				JSONObject responseJ = new JSONObject(response);
+				if (responseJ.getString("error").equals("")) {//success
+					
+				} else {//error
+					
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -76,7 +78,9 @@ public class UploadDeviceStatus {
 				app.put("package_name", cursor.getString(cursor.getColumnIndex("package_name")));
 				app.put("description", "" + cursor.getString(cursor.getColumnIndex("description")));
 				app.put("type", "" + cursor.getString(cursor.getColumnIndex("type")));
-				app.put("download_url", "" + cursor.getString(cursor.getColumnIndex("download_url")));
+				app.put("start_time", "" + cursor.getString(cursor.getColumnIndex("start_time")));
+				app.put("end_time", "" + cursor.getString(cursor.getColumnIndex("end_time")));
+				app.put("download", "" + cursor.getString(cursor.getColumnIndex("download")));
 				app.put("version", "" + cursor.getString(cursor.getColumnIndex("version")));
 				app.put("action", "" + cursor.getString(cursor.getColumnIndex("action")));
 				JSONObject object = new JSONObject(app);

@@ -5,10 +5,10 @@
  * should not be modified by hand.
  */
 
-package edu.buffalo.cse.phonelab.controller;
+package edu.buffalo.cse.phonelab.phonelabservices;
 
 public final class Manifest {
     public static final class permission {
-        public static final String C2D_MESSAGE="edu.buffalo.cse.phonelab.controller.permission.C2D_MESSAGE";
+        public static final String C2D_MESSAGE="edu.buffalo.cse.phonelab.phonelabservices.permission.C2D_MESSAGE";
     }
 }

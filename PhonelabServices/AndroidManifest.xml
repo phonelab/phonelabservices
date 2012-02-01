@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="edu.buffalo.cse.phonelab.controller"
+<manifest package="edu.buffalo.cse.phonelab.phonelabservices"
     android:versionCode="1"
     android:versionName="1.0" xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -8,16 +8,14 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
 
-    <permission android:name="edu.buffalo.cse.phonelab.controller.permission.C2D_MESSAGE" android:protectionLevel="signature" />
-    <uses-permission android:name="edu.buffalo.cse.phonelab.controller.permission.C2D_MESSAGE" />
+    <permission android:name="edu.buffalo.cse.phonelab.phonelabservices.permission.C2D_MESSAGE" android:protectionLevel="signature" />
+    <uses-permission android:name="edu.buffalo.cse.phonelab.phonelabservices.permission.C2D_MESSAGE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.REBOOT"/>
-    <uses-permission android:name="android.permission.ACCESS_CACHE_FILESYSTEM"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
     <application
         android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name" >
+        android:label="@string/app_name" >   
         <activity android:label="@string/app_name" android:name=".PhoneLabMainView" >
             <intent-filter >
                 <action android:name="android.intent.action.MAIN" />
@@ -25,7 +23,7 @@
             </intent-filter>
         </activity>
         <receiver android:name="edu.buffalo.cse.phonelab.c2dm.RegistrationReceiver" >
-            <!-- Receive the registration id -->
+            <!-- Receive the registration id --> 
             <intent-filter >
                 <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
                 <category android:name="edu.buffalo.cse.phonelab.phonelabservices" />
