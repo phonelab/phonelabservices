@@ -7,9 +7,12 @@ import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import edu.buffalo.cse.phonelab.database.DatabaseAdapter;
+import edu.buffalo.cse.phonelab.datalogger.LoggerService;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
 public class PhoneLabMainView extends Activity {
@@ -19,23 +22,11 @@ public class PhoneLabMainView extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-		/*try {
-			InputStream in = this.getAssets().open("install");
-			FileOutputStream f = new FileOutputStream(new File("/data/data/com.phonelab.controller", "install"));
-			byte[] buffer = new byte[1024];
-			int len = 0;
-			while ( (len = in.read(buffer)) > 0 ) {
-				f.write(buffer,0, len);
-			}
-			f.close();
-			Runtime.getRuntime().exec("/system/bin/chmod 744 " + "/data/data/com.phonelab.controller/install");
-			Log.i(getClass().getSimpleName(), "Install binary is set.");
-		} catch (IOException e) {
-			e.printStackTrace(); 
-		} catch (Exception exc){
-			exc.printStackTrace();
-		}*/
+        /*Start Data Logger*/
+        Intent service = new Intent(this, LoggerService.class);
+		this.startService(service);
 		
+		/*Check for unsynced info with server*/
         checkForSync();
     }
 
@@ -63,6 +54,20 @@ public class PhoneLabMainView extends Activity {
 		} else {
 			Log.i(getClass().getSimpleName(), "User info is synched");
 		}
+	}
+	
+	public void installedApps (View view) {
+		Log.i(getClass().getSimpleName(), "See All applications");
+		
+		Intent intent = new Intent(this, ApplicationList.class);
+		startActivity(intent);
+	}
+	
+	public void showInfo (View view) {
+		Log.i(getClass().getSimpleName(), "Info will be shown");
+		
+		Intent myIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.phone-lab.org"));
+		startActivity(myIntent);
 	}
 }
 

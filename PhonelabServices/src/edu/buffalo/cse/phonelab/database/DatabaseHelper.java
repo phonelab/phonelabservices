@@ -34,16 +34,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		db.execSQL(sql);
 
 		createSql = "create table if not exists application ("
-				+ "package_name TEXT PRIMARY KEY, name TEXT," 
+				+ "_id INTEGER PRIMARY KEY AUTOINCREMENT, package_name TEXT, name TEXT," 
 				+ "intent_name TEXT, description TEXT, type TEXT,"
 				+ "start_time TIMESTAMP, end_time TIMESTAMP,"
 				+ "download TEXT, version TEXT, action TEXT)";
 		db.execSQL(createSql);
 
 		createSql = "create table if not exists status_monitor_parameter ("
-				+ "name TEXT PRIMARY KEY, value TEXT," 
+				+ "_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, value TEXT," 
 				+ "units TEXT, set_by TEXT)";
 		db.execSQL(createSql);
+		
+		// Last updated Time
+        db.execSQL("CREATE TABLE IF NOT EXISTS " +
+					"uploadTime" +
+					" (_id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp BIGINT);"
+					);
+        // Process ID of Logcat
+        db.execSQL("CREATE TABLE IF NOT EXISTS " +
+				"pid" +
+				" (_id INTEGER PRIMARY KEY AUTOINCREMENT, pid INTEGER);"
+				);
 	}
 
 	@Override

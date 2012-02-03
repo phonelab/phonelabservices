@@ -33,25 +33,27 @@ public class StatusMonitorSignal extends Service {
 				super.onSignalStrengthsChanged(signalStrength);
 				try {
 					mTelManager.listen(this, PhoneStateListener.LISTEN_NONE);//unregistering
+					
+					if (signalStrength.isGsm())
+						mStrength = signalStrength.getGsmSignalStrength();
+					else{
+						int strength = -1;
+						if (signalStrength.getEvdoDbm() < 0)
+							strength = signalStrength.getEvdoDbm();
+						else if (signalStrength.getCdmaDbm() < 0)
+							strength = signalStrength.getCdmaDbm();
+
+						if (strength < 0) {
+							// convert to asu
+							mStrength = Math.round((strength + 113f) / 2f);
+						}
+
+						Log.i(getClass().getSimpleName(), "Signal Strength: " + strength + " asu: " + mStrength);
+					}  
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				if (signalStrength.isGsm())
-					mStrength = signalStrength.getGsmSignalStrength();
-				else{
-					int strength = -1;
-					if (signalStrength.getEvdoDbm() < 0)
-						strength = signalStrength.getEvdoDbm();
-					else if (signalStrength.getCdmaDbm() < 0)
-						strength = signalStrength.getCdmaDbm();
-
-					if (strength < 0) {
-						// convert to asu
-						mStrength = Math.round((strength + 113f) / 2f);
-					}
-
-					Log.i(getClass().getSimpleName(), "Signal Strength: " + strength + " asu: " + mStrength);
-				}               
+				             
 				StatusMonitorSignal.this.stopSelf();
 			}
 		};

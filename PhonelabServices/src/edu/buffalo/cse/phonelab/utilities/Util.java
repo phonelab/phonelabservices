@@ -26,7 +26,7 @@ public class Util {
 	 * @param Header
 	 * @param Message
 	 */
-	private void NofityUser(Context context,String Header, String Message) {
+	public void nofityUser(Context context,String Header, String Message) {
 		String ns = Context.NOTIFICATION_SERVICE;
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(ns);
 		int icon = R.drawable.ic_launcher;

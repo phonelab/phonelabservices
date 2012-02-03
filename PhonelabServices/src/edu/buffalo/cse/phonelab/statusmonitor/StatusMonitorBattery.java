@@ -25,13 +25,13 @@ public class StatusMonitorBattery extends Service {
 			public void onReceive(Context arg0, Intent arg1) {
 				try {
 					StatusMonitorBattery.this.unregisterReceiver(this);
+					
+					int bLevel = arg1.getIntExtra("level", 0);
+					String batteryLevel = String.valueOf(bLevel);
+					Log.i(getClass().getSimpleName(), "Battery level: " + batteryLevel);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-
-				int bLevel = arg1.getIntExtra("level", 0);
-				String batteryLevel = String.valueOf(bLevel);
-				Log.i(getClass().getSimpleName(), "Battery level: " + batteryLevel);
 
 				StatusMonitorBattery.this.stopSelf();
 			}

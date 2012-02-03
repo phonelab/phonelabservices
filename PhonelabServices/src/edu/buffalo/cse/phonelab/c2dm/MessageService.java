@@ -3,8 +3,10 @@
  */
 package edu.buffalo.cse.phonelab.c2dm;
 
-import java.io.File;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -18,11 +20,8 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
-
-
 import edu.buffalo.cse.phonelab.database.DatabaseAdapter;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabApplication;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabManifest;
@@ -30,6 +29,7 @@ import edu.buffalo.cse.phonelab.manifest.PhoneLabParameter;
 import edu.buffalo.cse.phonelab.statusmonitor.StatusMonitor;
 import edu.buffalo.cse.phonelab.utilities.DownloadFile;
 import edu.buffalo.cse.phonelab.utilities.UploadFile;
+import edu.buffalo.cse.phonelab.utilities.Util;
 
 public class MessageService extends IntentService {
 
@@ -127,6 +127,12 @@ public class MessageService extends IntentService {
 			//Send updated manifest to the server
 			UploadFile uploadManifest = new UploadFile();
 			uploadManifest.upload(getApplicationContext(), MANIFEST_UPLOAD_URL, "manifest.xml");
+		} else if (message.equals("uninstall_all_apps")) {
+			DatabaseAdapter dbAdapter = new DatabaseAdapter(getApplicationContext());
+			dbAdapter.open(1);
+			dbAdapter.truncateTable(1);
+			
+			dbAdapter.close();
 		}
 
 		Log.i(getClass().getSimpleName(), "C2DM Message Service is done!");
@@ -135,31 +141,46 @@ public class MessageService extends IntentService {
 	public void installApplication (PhoneLabApplication app, DatabaseAdapter dbAdapter) {
 		if (DownloadFile.downloadToDirectory(APP_DOWNLOAD_URL + app.getDownload(), Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
 			Log.i(getClass().getSimpleName(), "Installing " + app.getName() + " now...");
-			
-			String fileName = Environment.getExternalStorageDirectory() + "/" + app.getDownload();
+			 
+			/*String fileName = Environment.getExternalStorageDirectory() + "/" + app.getDownload();
 			Intent intent = new Intent(Intent.ACTION_VIEW);
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			intent.setDataAndType(Uri.fromFile(new File(fileName)), "application/vnd.android.package-archive");
-			startActivity(intent);
+			startActivity(intent);*/
 			
-			//After installed
-			ContentValues values = new ContentValues();
-			values.put("package_name", app.getPackageName());
-			values.put("name", app.getName());
-			values.put("description", app.getDescription());
-			values.put("type", app.getType());
-			values.put("start_time", app.getStartTime());
-			values.put("end_time", app.getEndTime());
-			values.put("download", app.getDownload());
-			values.put("version", app.getVersion());
-			values.put("action", app.getAction());
-			dbAdapter.insertEntry(values, 1);
-			
-			if (app.getType().equals("background")) {//start it in the background
-				//startingapplication(app, dbAdapter);
-			} else if (app.getType().equals("interactive")) {//notify user
-				
+			try {
+				Process process = Runtime.getRuntime().exec("pm install " + Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+				int statusCode = process.waitFor();
+				Log.i(getClass().getSimpleName(), "Status Code: " + statusCode);
+				if (statusCode == 0) {
+					//After installed
+					ContentValues values = new ContentValues();
+					values.put("package_name", app.getPackageName());
+					values.put("name", app.getName());
+					values.put("description", app.getDescription());
+					values.put("type", app.getType());
+					values.put("start_time", app.getStartTime());
+					values.put("end_time", app.getEndTime());
+					values.put("download", app.getDownload());
+					values.put("version", app.getVersion());
+					values.put("action", app.getAction());
+					dbAdapter.insertEntry(values, 1);
+					
+					if (app.getType().equals("background")) {//start it in the background
+						//startingapplication(app, dbAdapter);
+					} else if (app.getType().equals("interactive")) {//notify user
+						new Util().nofityUser(this, "PhoneLab New Application Installation", "" + app.getName() + " is installed on your device");
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
+			
+			//remove .apk from sdcard
+			//File file = new File(fileName);
+			//boolean deleted = file.delete();
 		}
 	}
 	
@@ -167,35 +188,66 @@ public class MessageService extends IntentService {
 		if (DownloadFile.downloadToDirectory(APP_DOWNLOAD_URL + app.getName() + ".apk", Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
 			Log.i(getClass().getSimpleName(), "Updating " + app.getName() + " now...");
 			//Update here...
-			String fileName = Environment.getExternalStorageDirectory() + "/" + app.getDownload();
+			/*String fileName = Environment.getExternalStorageDirectory() + "/" + app.getDownload();
 			Intent intent = new Intent(Intent.ACTION_VIEW);
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			intent.setDataAndType(Uri.fromFile(new File(fileName)), "application/vnd.android.package-archive");
-			startActivity(intent);
+			startActivity(intent);*/
 			
-			//Update local database here
-			ContentValues values = new ContentValues();
-			values.put("name", app.getName());
-			values.put("description", app.getDescription());
-			values.put("type", app.getType());
-			values.put("start_time", app.getStartTime());
-			values.put("end_time", app.getEndTime());
-			values.put("download", app.getDownload());
-			values.put("version", app.getVersion());
-			values.put("action", app.getAction());
-			dbAdapter.update(values, 1, "package_name='" + app.getPackageName() + "'");
+			try {
+				Runtime.getRuntime().exec("pm install " + Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+				
+				//Update local database here
+				ContentValues values = new ContentValues();
+				values.put("name", app.getName());
+				values.put("description", app.getDescription());
+				values.put("type", app.getType());
+				values.put("start_time", app.getStartTime());
+				values.put("end_time", app.getEndTime());
+				values.put("download", app.getDownload());
+				values.put("version", app.getVersion());
+				values.put("action", app.getAction());
+				dbAdapter.update(values, 1, "package_name='" + app.getPackageName() + "'");
+				
+				if (app.getType().equals("background")) {//start it in the background
+					//startingapplication(app, dbAdapter);
+				} else if (app.getType().equals("interactive")) {//notify user
+					new Util().nofityUser(this, "PhoneLab Application Update", app.getName() + " is updated");
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+			//remove .apk from sdcard
+			//File file = new File(fileName);
+			//boolean deleted = file.delete();
 		}
 	}
 	
 	private void removeapplication(PhoneLabApplication app, DatabaseAdapter dbAdapter) {
 		Log.i(getClass().getSimpleName(), "Removing " + app.getName() + " now...");
 		//Remove here
-		Uri packageURI = Uri.parse("package:" + app.getPackageName());
+		/*Uri packageURI = Uri.parse("package:" + app.getPackageName());
         Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, packageURI);
         uninstallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(uninstallIntent);
-        //Update database here 
-		dbAdapter.deleteEntry("package_name='" + app.getPackageName() + "'", 1);
+        startActivity(uninstallIntent);*/
+		
+		try {
+			Process process = Runtime.getRuntime().exec("pm uninstall " + app.getPackageName());
+			int statusCode = process.waitFor();
+			Log.i(getClass().getSimpleName(), "Status Code: " + statusCode);
+			
+			
+			if (statusCode == 0) {
+				//Update database here 
+				dbAdapter.deleteEntry("package_name='" + app.getPackageName() + "'", 1);
+				new Util().nofityUser(this, "PhoneLab Application Uninstallation", app.getName() + " is uninstalled");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void startStatusMonitor(DatabaseAdapter dbAdapter) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
