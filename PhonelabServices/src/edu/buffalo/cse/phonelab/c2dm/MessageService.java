@@ -3,26 +3,20 @@
  */
 package edu.buffalo.cse.phonelab.c2dm;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 
-import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
-
-import org.xml.sax.SAXException;
 
 import android.app.IntentService;
 import android.app.PendingIntent;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.os.Environment;
 import android.util.Log;
-import edu.buffalo.cse.phonelab.database.DatabaseAdapter;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabApplication;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabManifest;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabParameter;
@@ -33,12 +27,13 @@ import edu.buffalo.cse.phonelab.utilities.Util;
 
 public class MessageService extends IntentService {
 
-	private static final String MANIFEST_DOWNLOAD_URL = "http://50.19.247.145/phonelab/server/manifest.xml";//url to download manifest
-	private static final String MANIFEST_DIR = "/sdcard/manifest.xml";//directory to download manifest
+	private static final String MANIFEST_DOWNLOAD_URL = "http://50.19.247.145/phonelab/server/new_manifest.xml";//url to download manifest
+	private static final String NEW_MANIFEST_DIR = "/sdcard/new_manifest.xml";//directory to download new manifest
+	private static final String CURRENT_MANIFEST_DIR = "/sdcard/manifest.xml";//directory for current, latest manifest 
 	private static final String APP_DOWNLOAD_URL = "http://50.19.247.145/phonelab/server/";//base url to download application 
 	private static final String MANIFEST_UPLOAD_URL = "http://50.19.247.145/phonelab/upload_manifest.php";
 	private static final String DEVICE_STATUS_UPLOAD_URL = "http://50.19.247.145/phonelab/device_status_upload.php";
-	
+
 	public MessageService() {
 		super("MessageService");
 	}
@@ -49,69 +44,42 @@ public class MessageService extends IntentService {
 
 		String message = intent.getExtras().getString("message");
 		if (message.equals("new_manifest")) {
-			if (DownloadFile.downloadToDirectory(MANIFEST_DOWNLOAD_URL, MANIFEST_DIR)) {
-				DatabaseAdapter dbAdapter = new DatabaseAdapter(getApplicationContext());
-				dbAdapter.open(1);
-				try {
-					PhoneLabManifest manifest = new PhoneLabManifest(MANIFEST_DIR);
-					//Handle applications
-					try {
-						ArrayList<PhoneLabApplication> applications = manifest.getApplicationsByConstraints(null);
-						for (PhoneLabApplication app:applications) {
-							Cursor cursor = dbAdapter.selectEntry("package_name='" + app.getPackageName() + "'", 1, null, null, null, null);
-							if (cursor.moveToFirst()) {//App exists
-								if (app.getAction().equals("update")) {
-									updateApplication(app, dbAdapter);
-								} else if (app.getAction().equals("uninstall")) {
-									removeapplication(app, dbAdapter);
-								} 
-							} else {//No such app exists
-								if (app.getAction().equals("install")) {
-									installApplication(app, dbAdapter);
-								}
-							}
-							cursor.close();
-						} 
-					} catch (XPathExpressionException e) {
-						e.printStackTrace();
-					}
-					//Handle Status Monitor
-					try {
-						ArrayList<PhoneLabParameter> parameters = manifest.getStatParamaterByConstraints(null);
-						if (parameters.size() > 0) {
-							for (PhoneLabParameter param:parameters) {
-								Cursor cursor = dbAdapter.selectEntry("name='" + param.getName() + "'", 2, null, null, null, null);
-								if (cursor.moveToFirst()) {//Parameter exists
-									ContentValues values = new ContentValues();
-									values.put("units", param.getUnits());
-									values.put("value", param.getValue());
-									values.put("set_by", param.getSetBy());
-									dbAdapter.update(values, 2, "name='" + param.getName() + "'");
-								} else {//Parameter does not exist
-									ContentValues values = new ContentValues();
-									values.put("name", param.getName());
-									values.put("units", param.getUnits());
-									values.put("value", param.getValue());
-									values.put("set_by", param.getSetBy());
-									dbAdapter.insertEntry(values, 2);
-								}
-								cursor.close();
-							}
-							startStatusMonitor(dbAdapter);
+			if (DownloadFile.downloadToDirectory(MANIFEST_DOWNLOAD_URL, NEW_MANIFEST_DIR)) {
+				PhoneLabManifest newManifest = new PhoneLabManifest(NEW_MANIFEST_DIR);
+				if (newManifest.getManifest()) {
+					PhoneLabManifest currentManifest = new PhoneLabManifest(CURRENT_MANIFEST_DIR);
+					if (currentManifest.getManifest()) {
+						handleExistingManifest(currentManifest, newManifest);
+						try {
+							currentManifest.saveDocument();
+						} catch (TransformerException e) {
+							e.printStackTrace();
 						}
-					} catch (XPathExpressionException e) {
-						e.printStackTrace();
+					} else {
+						File newFile = new File(NEW_MANIFEST_DIR);
+						if (newFile.renameTo(new File(CURRENT_MANIFEST_DIR))) {
+							Log.i(getClass().getSimpleName(), "Renaming successful!");
+							PhoneLabManifest currentManifest2 = new PhoneLabManifest(CURRENT_MANIFEST_DIR);
+							if (currentManifest2.getManifest()) {
+								handleNewManifest(currentManifest2);
+								try {
+									currentManifest2.saveDocument();
+								} catch (TransformerException e) {
+									e.printStackTrace();
+								}
+							}
+						} else {
+							Log.w(getClass().getSimpleName(), "Renaming falied!");
+						}
 					}
-				} catch (ParserConfigurationException e) {
-					e.printStackTrace();
-				} catch (SAXException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
 				}
-				
-				Log.i(getClass().getSimpleName(), dbAdapter.toString()); 
-				dbAdapter.close();
+
+				File file = new File(NEW_MANIFEST_DIR);
+				if (file.delete()) {
+					Log.i(getClass().getSimpleName(), "New manifest successfully deleted");
+				} else {
+					Log.w(getClass().getSimpleName(), "New manifest cannot be deleted");
+				}
 			}
 		} else if (message.equals("get_device_info")) {
 			Intent registrationIntent = new Intent("com.google.android.c2dm.intent.REGISTER");
@@ -122,207 +90,320 @@ public class MessageService extends IntentService {
 			UploadDeviceStatus uploadDeviceStatus = new UploadDeviceStatus();
 			uploadDeviceStatus.uploadDeviceStatus(getApplicationContext(), DEVICE_STATUS_UPLOAD_URL);
 		} else if (message.equals("flash")) {
-			
-		} else if (message.equals("upload_manifest")) { 
-			//Send updated manifest to the server
+
+		} else if (message.equals("upload_manifest")) { //Send updated manifest to the server
 			UploadFile uploadManifest = new UploadFile();
 			uploadManifest.upload(getApplicationContext(), MANIFEST_UPLOAD_URL, "manifest.xml");
 		} else if (message.equals("uninstall_all_apps")) {
-			DatabaseAdapter dbAdapter = new DatabaseAdapter(getApplicationContext());
-			dbAdapter.open(1);
-			dbAdapter.truncateTable(1);
-			
-			dbAdapter.close();
+			uninstallAllApps();
+		} else if (message.equals("remove_manifest")) {
+			uninstallAllApps();
+			File file = new File(CURRENT_MANIFEST_DIR);
+			if (file.delete()) {
+				Log.i(getClass().getSimpleName(), "Downloaded Manifest successfully deleted");
+			} else {
+				Log.w(getClass().getSimpleName(), "Downloaded Manifest couldn't be deleted");
+			}
 		}
 
 		Log.i(getClass().getSimpleName(), "C2DM Message Service is done!");
 	}
-	
-	public void installApplication (PhoneLabApplication app, DatabaseAdapter dbAdapter) {
+
+	/**
+	 * This method uninstall all the applications from both manifest and device
+	 */
+	private void uninstallAllApps() {
+		PhoneLabManifest manifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR);
+		if (manifest.getManifest()) {
+			try {
+				ArrayList<PhoneLabApplication> applications = manifest.getAllApplications();
+				for (PhoneLabApplication app:applications) {
+					removeapplication(app);
+					try {
+						manifest.removeApplication(app.getPackageName());
+					} catch (XPathExpressionException e) {
+						e.printStackTrace();
+					}
+				}
+			} catch (XPathExpressionException e) {
+				e.printStackTrace();
+			}
+			
+			try {
+				manifest.saveDocument();
+			} catch (TransformerException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * If there is no old manifest this method will take care of the operations 
+	 * @param currentManifest current Manifest
+	 */
+	private void handleNewManifest(PhoneLabManifest currentManifest) {
+		//Handle applications
+		try {
+			ArrayList<PhoneLabApplication> applications = currentManifest.getApplicationsByConstraints(null);
+			for (PhoneLabApplication app:applications) {
+				if (app.getAction().equals("update")) {
+					if (!updateApplication(app)) {
+						currentManifest.removeApplication(app.getPackageName());
+					}
+				} else if (app.getAction().equals("uninstall")) {
+					if (!removeapplication(app)) {
+						currentManifest.removeApplication(app.getPackageName());
+					}
+				} else if (app.getAction().equals("install")) {
+					if (!installApplication(app)) {
+						currentManifest.removeApplication(app.getPackageName());
+					}
+				} 
+			} 
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
+		}
+		//Handle Status Monitor
+		try {
+			ArrayList<PhoneLabParameter> parameters = currentManifest.getStatParamaterByConstraints(null);
+			if (parameters.size() > 0) {
+				for (PhoneLabParameter param:parameters) {
+					HashMap<String, String> constraints = new HashMap<String, String>();
+					constraints.put("name", param.getName());
+					ArrayList<PhoneLabParameter> currentParameters = currentManifest.getStatParamaterByConstraints(constraints);
+					if (currentParameters != null && currentParameters.size() == 1) {//Parameter exists
+						currentManifest.updateStatParameter(param);
+					} else {//Parameter does not exist
+						currentManifest.addStatParameters(param);
+					}
+				}
+				startStatusMonitor(currentManifest);
+			}
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * If there is existing manifest, this method will take care of the operations by comparing with the old one
+	 * @param currentManifest current manifest
+	 * @param newManifest new manifest
+	 */
+	private void handleExistingManifest(PhoneLabManifest currentManifest, PhoneLabManifest newManifest) {
+		//Handle applications
+		try {
+			ArrayList<PhoneLabApplication> applications = newManifest.getApplicationsByConstraints(null);
+			for (PhoneLabApplication app:applications) {
+				HashMap<String, String> constraints = new HashMap<String, String>();
+				constraints.put("package_name", app.getPackageName());
+				ArrayList<PhoneLabApplication> currentApplication = currentManifest.getApplicationsByConstraints(constraints);
+				if (currentApplication != null && currentApplication.size() == 1) {//App exists
+					if (app.getAction().equals("update")) {
+						if (updateApplication(app)) {
+							currentManifest.updateApplication(app);
+						}
+					} else if (app.getAction().equals("uninstall")) {
+						if (removeapplication(app)) {
+							currentManifest.removeApplication(app.getPackageName());
+						}
+					} 
+				} else {//No such app exists
+					if (app.getAction().equals("install")) {
+						if (installApplication(app)) {
+							currentManifest.addApplication(app);
+						}
+					}
+				}
+			} 
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
+		}
+		//Handle Status Monitor
+		try {
+			ArrayList<PhoneLabParameter> parameters = newManifest.getStatParamaterByConstraints(null);
+			if (parameters.size() > 0) {
+				for (PhoneLabParameter param:parameters) {
+					HashMap<String, String> constraints = new HashMap<String, String>();
+					constraints.put("name", param.getName());
+					ArrayList<PhoneLabParameter> currentParameters = currentManifest.getStatParamaterByConstraints(constraints);
+					if (currentParameters != null && currentParameters.size() == 1) {//Parameter exists
+						currentManifest.updateStatParameter(param);
+					} else {//Parameter does not exist
+						currentManifest.addStatParameters(param);
+					}
+				}
+				startStatusMonitor(currentManifest);
+			}
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * This method install a new application to the phone
+	 * @param app PhoneLabApplication to install
+	 * @return true if successful, otherwise false
+	 */
+	public boolean installApplication (PhoneLabApplication app) {
 		if (DownloadFile.downloadToDirectory(APP_DOWNLOAD_URL + app.getDownload(), Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
 			Log.i(getClass().getSimpleName(), "Installing " + app.getName() + " now...");
-			 
-			/*String fileName = Environment.getExternalStorageDirectory() + "/" + app.getDownload();
-			Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			intent.setDataAndType(Uri.fromFile(new File(fileName)), "application/vnd.android.package-archive");
-			startActivity(intent);*/
-			
 			try {
 				Process process = Runtime.getRuntime().exec("pm install " + Environment.getExternalStorageDirectory() + "/" + app.getDownload());
 				int statusCode = process.waitFor();
 				Log.i(getClass().getSimpleName(), "Status Code: " + statusCode);
 				if (statusCode == 0) {
-					//After installed
-					ContentValues values = new ContentValues();
-					values.put("package_name", app.getPackageName());
-					values.put("name", app.getName());
-					values.put("description", app.getDescription());
-					values.put("type", app.getType());
-					values.put("start_time", app.getStartTime());
-					values.put("end_time", app.getEndTime());
-					values.put("download", app.getDownload());
-					values.put("version", app.getVersion());
-					values.put("action", app.getAction());
-					dbAdapter.insertEntry(values, 1);
-					
 					if (app.getType().equals("background")) {//start it in the background
-						//startingapplication(app, dbAdapter);
+						//startingapplication(app);
 					} else if (app.getType().equals("interactive")) {//notify user
-						new Util().nofityUser(this, "PhoneLab New Application Installation", "" + app.getName() + " is installed on your device");
+						new Util().nofityUser(this, "PhoneLab-New Application", "" + app.getName() + " is installed on your device");
 					}
+
+					return true;
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			
-			//remove .apk from sdcard
-			//File file = new File(fileName);
-			//boolean deleted = file.delete();
+
+			//Remove .apk from where it is downloaded
+			File file = new File(Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+			if (file.delete()) {
+				Log.i(getClass().getSimpleName(), "Downloaded .apk file for " + app.getName() + " deleted successfully");
+			} else {
+				Log.w(getClass().getSimpleName(), "Downloaded .apk file for " + app.getName() + " couldn't be deleted");
+			}
 		}
+
+		return false;
 	}
-	
-	private void updateApplication(PhoneLabApplication app, DatabaseAdapter dbAdapter) {
+
+	/**
+	 * This method will update the current installed application
+	 * @param app PhoneLabApplication to update
+	 * @return true if successful, otherwise false
+	 */
+	private boolean updateApplication(PhoneLabApplication app) {
 		if (DownloadFile.downloadToDirectory(APP_DOWNLOAD_URL + app.getName() + ".apk", Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
 			Log.i(getClass().getSimpleName(), "Updating " + app.getName() + " now...");
-			//Update here...
-			/*String fileName = Environment.getExternalStorageDirectory() + "/" + app.getDownload();
-			Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			intent.setDataAndType(Uri.fromFile(new File(fileName)), "application/vnd.android.package-archive");
-			startActivity(intent);*/
-			
 			try {
 				Runtime.getRuntime().exec("pm install " + Environment.getExternalStorageDirectory() + "/" + app.getDownload());
-				
-				//Update local database here
-				ContentValues values = new ContentValues();
-				values.put("name", app.getName());
-				values.put("description", app.getDescription());
-				values.put("type", app.getType());
-				values.put("start_time", app.getStartTime());
-				values.put("end_time", app.getEndTime());
-				values.put("download", app.getDownload());
-				values.put("version", app.getVersion());
-				values.put("action", app.getAction());
-				dbAdapter.update(values, 1, "package_name='" + app.getPackageName() + "'");
-				
 				if (app.getType().equals("background")) {//start it in the background
-					//startingapplication(app, dbAdapter);
+					//startingapplication(app);
 				} else if (app.getType().equals("interactive")) {//notify user
-					new Util().nofityUser(this, "PhoneLab Application Update", app.getName() + " is updated");
+					new Util().nofityUser(this, "PhoneLab-", app.getName() + " is updated");
 				}
+
+				return true;
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
-			//remove .apk from sdcard
-			//File file = new File(fileName);
-			//boolean deleted = file.delete();
+
+			//Remove .apk from where it is downloaded
+			File file = new File(Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+			if (file.delete()) {
+				Log.i(getClass().getSimpleName(), "Downloaded .apk file for " + app.getName() + " deleted successfully");
+			} else {
+				Log.w(getClass().getSimpleName(), "Downloaded .apk file for " + app.getName() + " couldn't be deleted");
+			}
 		}
+
+		return false;
 	}
-	
-	private void removeapplication(PhoneLabApplication app, DatabaseAdapter dbAdapter) {
+
+	/**
+	 * This method uninstall the application
+	 * @param app PhoneLabApplication to uninstall
+	 * @return true if successful, otherwise false
+	 */
+	private boolean removeapplication(PhoneLabApplication app) {
 		Log.i(getClass().getSimpleName(), "Removing " + app.getName() + " now...");
-		//Remove here
-		/*Uri packageURI = Uri.parse("package:" + app.getPackageName());
-        Intent uninstallIntent = new Intent(Intent.ACTION_DELETE, packageURI);
-        uninstallIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(uninstallIntent);*/
-		
 		try {
 			Process process = Runtime.getRuntime().exec("pm uninstall " + app.getPackageName());
 			int statusCode = process.waitFor();
 			Log.i(getClass().getSimpleName(), "Status Code: " + statusCode);
-			
-			
+
 			if (statusCode == 0) {
 				//Update database here 
-				dbAdapter.deleteEntry("package_name='" + app.getPackageName() + "'", 1);
-				new Util().nofityUser(this, "PhoneLab Application Uninstallation", app.getName() + " is uninstalled");
+				new Util().nofityUser(this, "PhoneLab-", app.getName() + " is uninstalled");
+
+				return true;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+
+		return false;
 	}
 
-	private void startStatusMonitor(DatabaseAdapter dbAdapter) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
-		Cursor cursor = dbAdapter.selectEntry("name='runInterval'", 2, null, null, null, null);
-		if (cursor.moveToFirst()) {
-			Intent statusMonitorIntent = new Intent(getApplicationContext(), StatusMonitor.class);
-			statusMonitorIntent.putExtra("units", cursor.getString(cursor.getColumnIndex("units")));
-			statusMonitorIntent.putExtra("value", cursor.getString(cursor.getColumnIndex("value")));
-			this.startService(statusMonitorIntent);
+	/**
+	 * This method starts status monitoring
+	 * It is called if there is any change on the new manifest
+	 * @param currentManifest 
+	 */
+	private void startStatusMonitor(PhoneLabManifest currentManifest) {
+		HashMap<String, String> constraintMap = new HashMap<String, String>();
+		constraintMap.put("name", "runInterval");
+		try {
+			ArrayList<PhoneLabParameter> parameters = currentManifest.getStatParamaterByConstraints(constraintMap);
+			if (parameters != null && parameters.size() == 1) {
+				PhoneLabParameter param = parameters.get(0);
+				Intent statusMonitorIntent = new Intent(getApplicationContext(), StatusMonitor.class);
+				statusMonitorIntent.putExtra("units", param.getUnits());
+				statusMonitorIntent.putExtra("value", param.getValue());
+				this.startService(statusMonitorIntent);
+			}
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Used to send manually start intents using android.intent.action.MAIN. 
-	 * 
 	 * @param app the phonelab Application
-	 * @param dbAdapter the hook to device database
-	 *            
+	 * @param dbAdapter the hook to device database          
 	 * @author rishi baldawa
 	 */
-	private void startingapplication(PhoneLabApplication app, DatabaseAdapter dbAdapter) {
-		//Runtime.getRuntime().exec("am start -a andriod.intent.action.MAIN -n  " + intentName);
-		
+	private void startingapplication(PhoneLabApplication app) {
 		Log.i(getClass().getSimpleName(), "Starting " + app.getName() + " now...");
-		
-		//Running the App
 		Intent startAppIntent = new Intent(Intent.ACTION_MAIN);
 		PackageManager manager = getPackageManager();
-		try{
+		try {
 			startAppIntent = manager.getLaunchIntentForPackage(app.getPackageName());
 		} catch( Exception e ) {
 			e.printStackTrace();
 			Log.w(getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
 		}
+
 		startAppIntent.addCategory(Intent.CATEGORY_LAUNCHER);
 		startActivity(startAppIntent);
-		
-		
-		//TODO notify database ??
-		
+
 		return;
 	}
-	
-	
+
+
 	/**
 	 * Used to send manually stop intents using android.intent.action.MAIN. 
-	 * 
-	 * 
-	 * @param app 
-	 * 				the phonelab Application
-	 * @param dbAdapter 
-	 * 				the hook to device database
-	 *            
+	 * @param app the phonelab Application
 	 * @author rishi baldawa
 	 */
-	private void stoppingapplication(PhoneLabApplication app, DatabaseAdapter dbAdapter) {
-		//Runtime.getRuntime().exec("am start -a andriod.intent.action.MAIN -n  " + intentName);
-		
+	/*private void stoppingapplication(PhoneLabApplication app) {
 		Log.i(getClass().getSimpleName(), "Stopping " + app.getName() + " now...");
-		
-		//Running the App
 		Intent stopAppIntent = new Intent(Intent.ACTION_MAIN);
 		PackageManager manager = getPackageManager();
-		try{
+		try {
 			stopAppIntent = manager.getLaunchIntentForPackage(app.getPackageName());
 		} catch( Exception e ) {
 			e.printStackTrace();
 			Log.w(getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
 		}
+
 		stopAppIntent.addCategory(Intent.CATEGORY_LAUNCHER);
 		stopService(stopAppIntent);
-		
-		//TODO notify database ??
-		
+
 		return;
-	}
+	}*/
 }
 

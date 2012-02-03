@@ -16,6 +16,12 @@ import android.util.Log;
 
 public class DownloadFile {
 
+	/**
+	 * Downlad any file to any directory
+	 * @param webUrl url to download
+	 * @param fileFullPath path to put downloaded file
+	 * @return true if successful, otherwise error
+	 */
 	public static boolean downloadToDirectory(String webUrl, String fileFullPath) {
 		try {
 			int BUFFER_SIZE = 1024;
@@ -43,7 +49,7 @@ public class DownloadFile {
 
 			return true;
 		} catch (IOException e) {
-			Log.i("edu.buffalo.cse.phonelab.controller", "Download Failed! Error: " + e);
+			Log.w("edu.buffalo.cse.phonelab.controller", "Download Failed! Error: " + e);
 		}
 
 		return false;

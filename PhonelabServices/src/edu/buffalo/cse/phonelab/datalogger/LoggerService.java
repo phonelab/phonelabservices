@@ -1,9 +1,5 @@
 package edu.buffalo.cse.phonelab.datalogger;
 
-import com.loopj.android.http.*;
-
-import edu.buffalo.cse.phonelab.database.DatabaseAdapter;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -21,11 +17,19 @@ import java.util.TimerTask;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Binder;
 import android.os.Environment;
 import android.os.IBinder;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
+import edu.buffalo.cse.phonelab.utilities.Util;
 
 /**
  * @author mike
@@ -35,13 +39,15 @@ public class LoggerService extends Service {
 	private final IBinder mBinder = new LogBinder();
 	private Timer timer = new Timer();
 	private final String LOG_DIR = Environment.getExternalStorageDirectory() + "/" + DataLoggerConstants.LOG_DIR + "/";
-	private DatabaseAdapter db;
+	private SharedPreferences settings;
+	private Editor editor;
 	
 	public void onCreate() {
 		super.onCreate();
-		Log.d(DataLoggerConstants.TAG, "Start Service");
-		db = new DatabaseAdapter(getApplicationContext());
-		db.open(1);
+		Log.i(getClass().getSimpleName(), "Start Service");
+		settings = getApplicationContext().getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
+		editor = settings.edit();
+		
 		start();
 	}
 	
@@ -50,7 +56,7 @@ public class LoggerService extends Service {
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
-				Log.d(DataLoggerConstants.TAG, "Service Running");
+				Log.i(getClass().getSimpleName(), "Service Running");
 				// Check for LogCat Process
 				checkLogCatProcess();
 				
@@ -63,14 +69,13 @@ public class LoggerService extends Service {
 	 */
 	private void checkLogCatProcess() {
 		List<Integer> pids = getPID("logcat");
-		int pidFromDb = db.getLastPID();
-		Log.d(DataLoggerConstants.TAG, "Checking Logcat process ... pid from Dbase " + pidFromDb);
+		int pidFromDb = settings.getInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, -1);
 		boolean foundLogCat = false;
 		if (pids.size() > 0) {
 			for(int pid:pids) {
 				// If logcat is found
 				if(pidFromDb == pid) {
-					Log.d(DataLoggerConstants.TAG, "Logcat process found " + pid);
+					Log.i(getClass().getSimpleName(), "Logcat process found " + pid);
 					// Process Found
 					if (logFileThreshold()) {
 						transferLogFiles();
@@ -78,7 +83,7 @@ public class LoggerService extends Service {
 					foundLogCat = true;
 					break;
 				} else {
-					Log.d(DataLoggerConstants.TAG, "Killing bogus process " + pid);
+					Log.i(getClass().getSimpleName(), "Killing bogus process " + pid);
 					// Kill other bogus processes
 					android.os.Process.killProcess(pid);
 					// Start a new LogCat process
@@ -97,7 +102,7 @@ public class LoggerService extends Service {
 	private boolean logFileThreshold() {
 		File f = new File(LOG_DIR + "log.out");
 		boolean threshold = f.length() < DataLoggerConstants.THRESHOLD * 1024;
-		Log.d(DataLoggerConstants.TAG, "Checking Threshold ... " + threshold);
+		Log.i(getClass().getSimpleName(), "Checking Threshold ... " + threshold);
 		return threshold;
 	}
 		
@@ -115,10 +120,10 @@ public class LoggerService extends Service {
 	 * @return boolean
 	 */
 	private void transferLogFiles() {
-		Log.d(DataLoggerConstants.TAG, "Starting to Merge files");
+		Log.i(getClass().getSimpleName(), "Starting to Merge files");
 		File[] allFiles = new File(LOG_DIR).listFiles();
 		String mergedFileSrc = LOG_DIR + "merged.txt";
-		Log.d(DataLoggerConstants.TAG, "Files found .. " + allFiles.length);
+		Log.i(getClass().getSimpleName(), "Files found .. " + allFiles.length);
 		String line = "";
 		AsyncHttpClient client = new AsyncHttpClient();
 		RequestParams params = new RequestParams();
@@ -133,7 +138,7 @@ public class LoggerService extends Service {
 				
 				// Merge files together & save as merged.txt
 				if (fileName != "log.out" && fileName.startsWith("log.out.")) {
-					Log.d(DataLoggerConstants.TAG, "File " + i + " " + allFiles[i].getName());
+					Log.i(getClass().getSimpleName(), "File " + i + " " + allFiles[i].getName());
 					// Merge files
 					try {
 						BufferedReader ip = new BufferedReader(new FileReader(allFiles[i]));
@@ -148,13 +153,13 @@ public class LoggerService extends Service {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					Log.d(DataLoggerConstants.TAG, "Removing File " + i + " " + allFiles[i].delete());
+					Log.i(getClass().getSimpleName(), "Removing File " + i + " " + allFiles[i].delete());
 				}
 			}
 			
 			// Now lets send Merged File
 			final File f = new File(mergedFileSrc);
-			Log.d(DataLoggerConstants.TAG, "Merged File " + f.length());
+			Log.i(getClass().getSimpleName(), "Merged File " + f.length());
 			// If File is new i.e created after last uploaded time
 			// Set last successful upload time			
 			try {
@@ -164,9 +169,10 @@ public class LoggerService extends Service {
 			    @Override
 			    public void onSuccess(String response) {
 			    	Date now = new Date();
-					db.setLastUpdateTime((System.currentTimeMillis()/1000 - ((now.getMinutes() * 60  + now.getSeconds()))));
-					Log.d(DataLoggerConstants.TAG, "Removing Merged File " + f.delete());
-					Log.d(DataLoggerConstants.TAG, "Response " + response);
+					editor.putLong(Util.SHARED_PREFERENCES_DATA_LOGGER_LAST_UPDATE_TIME, (System.currentTimeMillis()/1000 - ((now.getMinutes() * 60  + now.getSeconds()))));
+					editor.commit();
+					Log.i(getClass().getSimpleName(), "Removing Merged File " + f.delete());
+					Log.i(getClass().getSimpleName(), "Response " + response);
 			    }
 			});
 		} else {
@@ -215,7 +221,7 @@ public class LoggerService extends Service {
 			
 			for(int i = 0; i<splitString.length; i++) {
 				if (splitString[i].startsWith("app_")) {
-					Log.d(DataLoggerConstants.TAG, splitString[i].toString());
+					Log.i(getClass().getSimpleName(), splitString[i].toString());
 					String[] splitPs = splitString[i].split("\\s+");
 					pids.add(Integer.parseInt(splitPs[1]));
 				}
@@ -232,15 +238,15 @@ public class LoggerService extends Service {
 		//Process process;
 		int pid = 0;
 		try {
-			Log.d(DataLoggerConstants.TAG, "Logcat process not found, starting process");
+			Log.i(getClass().getSimpleName(), "Logcat process not found, starting process");
 			// create log dir if it doesn`t exist
 			createLogDir();
 			Runtime.getRuntime().exec("logcat -v long -f " + LOG_DIR + "log.out -r " + DataLoggerConstants.LOG_FILE_SIZE + " -n " + DataLoggerConstants.AUX_LOG_FILES + " &");
 			pid = getPID("logcat").iterator().next();
-	        db.setLastPID(pid);
-	        Log.d(DataLoggerConstants.TAG, "PID to db" + pid);
+	        editor.putInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, pid);
+	        Log.i(getClass().getSimpleName(), "PID to db" + pid);
 		} catch (IOException e) {
-			Log.d(DataLoggerConstants.TAG, e.getMessage());
+			Log.w(getClass().getSimpleName(), e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -250,13 +256,9 @@ public class LoggerService extends Service {
 		if (timer != null) {
 			timer.cancel();
 		}
-		try {
-			db.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		Log.d(DataLoggerConstants.TAG, "Kill Service");
-		Log.i(DataLoggerConstants.TAG, "Timer stopped.");
+		
+		Log.i(getClass().getSimpleName(), "Kill Service");
+		Log.i(getClass().getSimpleName(), "Timer stopped.");
 	}
 	
 	@Override

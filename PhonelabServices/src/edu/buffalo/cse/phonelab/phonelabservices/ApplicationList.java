@@ -3,16 +3,18 @@
  */
 package edu.buffalo.cse.phonelab.phonelabservices;
 
+import java.util.ArrayList;
+
+import javax.xml.xpath.XPathExpressionException;
+
 import android.app.ListActivity;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
-import edu.buffalo.cse.phonelab.database.DatabaseAdapter;
+import edu.buffalo.cse.phonelab.manifest.PhoneLabApplication;
+import edu.buffalo.cse.phonelab.manifest.PhoneLabManifest;
+import edu.buffalo.cse.phonelab.utilities.Util;
 
 /**
  * @author Muhammed Fatih Bulut
@@ -26,38 +28,27 @@ public class ApplicationList extends ListActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.application_list);
 
-		DatabaseAdapter dbAdapter = new DatabaseAdapter(this);
-		dbAdapter.open(0);
-		Cursor cursor = getAppNames(dbAdapter);
-		if (cursor != null) {
-			Log.i(getClass().getSimpleName(), "Cursor is not empty!");
-			startManagingCursor(cursor);
-			SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, R.layout.application_list_entry, cursor, 
-					new String[] {"name", "description"},
-					new int[] {R.id.name_entry, R.id.description_entry});
-			setListAdapter(adapter);
-
-			ListView list = getListView();
-			list.setOnItemClickListener(new OnItemClickListener() {
-
-				@Override
-				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-					Log.i(getClass().getSimpleName(), "Position: " + position + " Row _id: " + id);
+		PhoneLabManifest manifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR);
+		try {
+			if (manifest.getManifest()) {
+				ArrayList<PhoneLabApplication> applications = manifest.getAllApplications();
+				String[] values = new String[applications.size()];
+				String[] descriptions = new String[applications.size()];
+				for (int i = 0;i < applications.size();i++) {
+					values[i] = applications.get(i).getName();
+					descriptions[i] = applications.get(i).getDescription();
 				}
-			});
+				ApplicationListArrayAdapter adapter = new ApplicationListArrayAdapter(this, values, descriptions);
+				setListAdapter(adapter);
+			}
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
 		}
-
-		dbAdapter.close();
 	}
-
-	/**
-	 * @param dbAdapter 
-	 * @param Context context
-	 * @return cursor for all the applications
-	 */
-	private Cursor getAppNames(DatabaseAdapter dbAdapter) {
-		Cursor cursor = dbAdapter.selectEntry("", 1, null, null, null, null);
-		return cursor;
+	
+	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		String item = (String) getListAdapter().getItem(position);
+		Log.i(getClass().getSimpleName(), "Item: " + item + "Position: " + position + " id: " + id);
 	}
 }

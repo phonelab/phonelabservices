@@ -19,11 +19,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.IntentService;
-import android.content.ContentValues;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.util.Log;
-import edu.buffalo.cse.phonelab.database.DatabaseAdapter;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
 public class RegistrationService extends IntentService {
@@ -55,16 +55,19 @@ public class RegistrationService extends IntentService {
 			Log.i(getClass().getSimpleName(), response);
 			
 			JSONObject responseJ = new JSONObject(response);
-			DatabaseAdapter dbAdapter = new DatabaseAdapter(getApplicationContext());
-			dbAdapter.open(1);
-			ContentValues values = new ContentValues();
+			SharedPreferences settings = getApplicationContext().getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
+			Editor editor = settings.edit();
 			if(responseJ.getString("error").equals("")) {
-				values.put("synced", 1);
+				editor.putBoolean(Util.SHARED_PREFERENCES_SYNC_KEY, true);
 			} else {
-				values.put("synced", 0);
+				editor.putBoolean(Util.SHARED_PREFERENCES_SYNC_KEY, false);
 			}
-			dbAdapter.update(values, 0, "device_id='" + Util.getDeviceId(getApplicationContext()) + "'");
-			dbAdapter.close();
+			//now commit changes to shared preferences
+			if (editor.commit()) {
+				Log.i(getClass().getSimpleName(), "Shared Preferences Settings updated successfully");
+			} else {
+				Log.w(getClass().getSimpleName(), "Shared Preferences Settings couldn't be updated");
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (JSONException e) {

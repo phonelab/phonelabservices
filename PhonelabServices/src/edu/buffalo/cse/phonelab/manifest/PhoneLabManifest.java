@@ -1,8 +1,8 @@
-/*
- * Muhammed Fatih Bulut
+/**
+ * @author fatih
  * PhoneLab Controller-Manifest Class
  * If any changes are made, then call saveDocument() method to save final version of the manifest.xml
- * */
+ */
 
 package edu.buffalo.cse.phonelab.manifest;
 
@@ -33,17 +33,40 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class PhoneLabManifest {
-
 	private Document document = null;
 	private XPath xpath = null;
 	private String xmlFullPath;
-	public PhoneLabManifest (String xmlFullPath) throws ParserConfigurationException, SAXException, IOException {
+	
+	public PhoneLabManifest (String xmlFullPath) {
 		this.xmlFullPath = xmlFullPath;
-		document = getDocuments(xmlFullPath);
-		xpath = XPathFactory.newInstance().newXPath();
+	}
+	
+	/**
+	 * Method to get manifest. This method make sure that manifest exists. Caller should make sure to handle correctly if return null
+	 * @return true if manifest exists otherwise return false
+	 */
+	public boolean getManifest () {
+		try {
+			document = getDocuments(xmlFullPath);
+			xpath = XPathFactory.newInstance().newXPath();
+			if (document != null)
+				return true;
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		} catch (SAXException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return false;
 	}
 
-	//This will return all the application presented in the manifest regardless of any attributes
+	/**
+	 * This will return all the application presented in the manifest regardless of any attributes 
+	 * @return appList
+	 * @throws XPathExpressionException
+	 */
 	public ArrayList<PhoneLabApplication> getAllApplications () throws XPathExpressionException {
 		ArrayList<PhoneLabApplication> appList = new ArrayList<PhoneLabApplication>();
 		NodeList list = (NodeList) xpath.evaluate("/manifest/application", document, XPathConstants.NODESET);
@@ -56,9 +79,13 @@ public class PhoneLabManifest {
 		return appList;
 	}
 
-	//Constraints are the attributes presented in the application tag of manifest.
-	//Map should be provided as in sqlite where both key and value should be String object
-	//If constraintMap is null, method returns all the applications
+	/** 
+	 * @param constraintMap: should be provided as in sqlite where both key and value should be String object,
+	 * Constraints are the attributes presented in the application tag of manifest.
+	 * If constraintMap is null, method returns all the applications
+	 * @return appList
+	 * @throws XPathExpressionException
+	 */
 	public ArrayList<PhoneLabApplication> getApplicationsByConstraints (HashMap<String, String> constraintMap) throws XPathExpressionException {
 		ArrayList<PhoneLabApplication> appList = new ArrayList<PhoneLabApplication>();
 		String constaintStr = "";
@@ -83,6 +110,12 @@ public class PhoneLabManifest {
 		return appList;
 	}
 	
+	/**
+	 * Set an application or applications based on the constraintMap
+	 * @param constraintMap: map of keys and values for selecting application
+	 * @param values: map of keys and values to replace
+	 * @throws XPathExpressionException
+	 */
 	public void setApplication(HashMap<String, String> constraintMap, HashMap<String, String> values) throws XPathExpressionException {
 		String constaintStr = "";
 		if (constraintMap != null) {
@@ -102,9 +135,14 @@ public class PhoneLabManifest {
 		}
 	}
 
-	//Constraints are the attributes presented in the application tag of manifest.
-	//Map should be provided as in sqlite where both key and value should be String object
-	//If constraintMap is null, method returns all parameter tags
+	/**
+	 * 
+	 * @param constraintMap: Constraints are the attributes presented in the application tag of manifest.
+	 * Map should be provided as in sqlite where both key and value should be String object
+	 * If constraintMap is null, method returns all parameter tags
+	 * @return paramList
+	 * @throws XPathExpressionException
+	 */
 	public ArrayList<PhoneLabParameter> getStatParamaterByConstraints (HashMap<String, String> constraintMap) throws XPathExpressionException {
 		ArrayList<PhoneLabParameter> paramList = new ArrayList<PhoneLabParameter>();
 		String constaintStr = "";
@@ -129,11 +167,14 @@ public class PhoneLabManifest {
 		return paramList;
 	}
 
-	//This will remove all application tag which has action attributes: uninstall
-	public void removeApplications() throws XPathExpressionException {
+	/**
+	 * This will remove all applications 
+	 * @throws XPathExpressionException
+	 */
+	public void removeAllApplications() throws XPathExpressionException {
 		Node rootElement = document.getFirstChild();
 		if (rootElement != null) { 
-			NodeList list = (NodeList) xpath.evaluate("/manifest/application[@action='uninstall']", document, XPathConstants.NODESET);
+			NodeList list = (NodeList) xpath.evaluate("/manifest/application", document, XPathConstants.NODESET);
 			for (int i = 0;i < list.getLength();i++) {
 				Node node = list.item(i);
 				rootElement.removeChild(node);
@@ -141,51 +182,29 @@ public class PhoneLabManifest {
 		}
 	}
 
-	//Constraints are the attributes presented in the application tag of manifest.
-	//Map should be provided as in sqlite where both key and value should be String object
-	//Don't forget to add uninstall="yes" key value pair if you just want to remove the ones that has uninstall tag
-	//if constraintMap is null, method will remove all the applications
-	public void removeApplicationsByConstraints (HashMap<String, String> constraintMap) throws XPathExpressionException {
-		String constaintStr = "";
-		if (constraintMap != null) {
-			for (Map.Entry<String, String> entry:constraintMap.entrySet()) {
-				if (!constaintStr.equals(""))
-					constaintStr += " and @" + entry.getKey() + "='" + entry.getValue() + "'";
-				else
-					constaintStr += "[@" + entry.getKey() + "='" + entry.getValue() + "'";
-			}
-
-			if (!constaintStr.equals(""))
-				constaintStr += "]";
-		}
+	/**
+	 * Remove an application based on package name
+	 * @param packageName
+	 * @throws XPathExpressionException
+	 */
+	public void removeApplication (String packageName) throws XPathExpressionException {
 		Node rootElement = document.getFirstChild();
-		NodeList list = (NodeList) xpath.evaluate("/manifest/application" + constaintStr, document, XPathConstants.NODESET);
+		NodeList list = (NodeList) xpath.evaluate("/manifest/application[@package_name='" + packageName + "']", document, XPathConstants.NODESET);
 		for (int i = 0;i < list.getLength();i++) {
 			Node node = list.item(i);
 			rootElement.removeChild(node);
 		}
 	}
 
-	//Constraints are the attributes presented in the application tag of manifest.
-	//Map should be provided as in sqlite where both key and value should be String object
-	//Don't forget to add action="remove" key value pair if you just want to remove the ones that has remove tag
-	//if constraintMap is null, method will remove all the applications
-	public void removeStatParametersByConstraints (HashMap<String, String> constraintMap) throws XPathExpressionException {
-		String constaintStr = "";
-		if (constraintMap != null) {
-			for (Map.Entry<String, String> entry:constraintMap.entrySet()) {
-				if (!constaintStr.equals(""))
-					constaintStr += " and @" + entry.getKey() + "='" + entry.getValue() + "'";
-				else
-					constaintStr += "[@" + entry.getKey() + "='" + entry.getValue() + "'";
-			}
-
-			if (!constaintStr.equals(""))
-				constaintStr += "]";
-		}
+	/**
+	 * Remove a status monitor parameter based on the name attribute
+	 * @param name
+	 * @throws XPathExpressionException
+	 */
+	public void removeStatParameters (String name) throws XPathExpressionException {
 		Node statusMonitor = (Node) xpath.evaluate("/manifest/statusmonitor", document, XPathConstants.NODE);
 		if (statusMonitor != null) {
-			NodeList list = (NodeList) xpath.evaluate("/manifest/statusmonitor/parameter" + constaintStr, document, XPathConstants.NODESET);
+			NodeList list = (NodeList) xpath.evaluate("/manifest/statusmonitor/parameter[@name='" + name + "']", document, XPathConstants.NODESET);
 			for (int i = 0;i < list.getLength();i++) {
 				Node node = list.item(i);
 				statusMonitor.removeChild(node);
@@ -193,17 +212,55 @@ public class PhoneLabManifest {
 		}
 	}
 	
-	public void removeAllStatParameters () throws XPathExpressionException {
-		Node statusMonitor = (Node) xpath.evaluate("/manifest/statusmonitor", document, XPathConstants.NODE);
-		if (statusMonitor != null) {
-			NodeList list = (NodeList) xpath.evaluate("/manifest/statusmonitor/parameter[@action='remove']", document, XPathConstants.NODESET);
-			for (int i = 0;i < list.getLength();i++) {
-				Node node = list.item(i);
-				statusMonitor.removeChild(node);
-			}
+	/**
+	 * Add Status Monitor Parameter to manifest
+	 * @param param parameter to add
+	 * @throws XPathExpressionException
+	 */
+	public void addStatParameters (PhoneLabParameter param) throws XPathExpressionException {
+		Node node = (Node) xpath.evaluate("/manifest/statusmonitor", document, XPathConstants.NODE);
+		Element statusElement = null; 
+		if (node == null) {//no status monitor
+			statusElement = document.createElement("statusmonitor");
+			document.getFirstChild().appendChild(statusElement);
+		} else {
+			statusElement = (Element) node;
 		}
+		
+		Element newElement = document.createElement("parameter");
+		if (param.getUnits() != null)
+			newElement.setAttribute("units", param.getUnits());
+		if (param.getValue() != null)
+			newElement.setAttribute("value", param.getValue());
+		if (param.getSetBy() != null)
+			newElement.setAttribute("set_by", param.getSetBy());
+		statusElement.appendChild(newElement);
+	}
+	
+	/**
+	 * Update Status Monitor Parameter 
+	 * @param param parameter to replace
+	 * @throws XPathExpressionException
+	 */
+	public void updateStatParameter (PhoneLabParameter param) throws XPathExpressionException {
+		Element statusElement = (Element) xpath.evaluate("/manifest/statusmonitor", document, XPathConstants.NODE);
+		Node pNode = (Node) xpath.evaluate("parameter[@name='" + param.getName() +  "']", statusElement, XPathConstants.NODE);
+		statusElement.removeChild(pNode);
+		Element newElement = document.createElement("parameter");
+		if (param.getUnits() != null)
+			newElement.setAttribute("units", param.getUnits());
+		if (param.getValue() != null)
+			newElement.setAttribute("value", param.getValue());
+		if (param.getSetBy() != null)
+			newElement.setAttribute("set_by", param.getSetBy());
+		statusElement.appendChild(newElement);
 	}
 
+	/**
+	 * Internal method used to copy from manifest status monitor parameter to PhoneLabParameter class instance
+	 * @param param 
+	 * @param element
+	 */
 	private void copyParameter(PhoneLabParameter param, Element element) {
 		NamedNodeMap map = element.getAttributes();
 		for (int i=0;i < map.getLength();i++) {
@@ -220,6 +277,11 @@ public class PhoneLabManifest {
 		}
 	}
 
+	/**
+	 * Internal method used to copy from manifest Application to PhoneLabApplication class instance
+	 * @param app
+	 * @param element
+	 */
 	private void copyApp(PhoneLabApplication app, Element element) {
 		NamedNodeMap map = element.getAttributes();
 		for (int i=0;i < map.getLength();i++) {
@@ -248,16 +310,95 @@ public class PhoneLabManifest {
 			}
 		}
 	}
+	
+	/**
+	 * Add an application to manifest
+	 * @param app
+	 */
+	public void addApplication (PhoneLabApplication app) {
+		Element newElement = document.createElement("application");
+		if (app.getPackageName() != null)
+			newElement.setAttribute("package_name", app.getPackageName());
+		if (app.getName() != null)
+			newElement.setAttribute("name", app.getName());
+		if (app.getDescription() != null)
+			newElement.setAttribute("description", app.getDescription());
+		if (app.getType() != null)
+			newElement.setAttribute("type", app.getType());
+		if (app.getStartTime() != null)
+			newElement.setAttribute("start_time", app.getStartTime());
+		if (app.getEndTime() != null)
+			newElement.setAttribute("end_time", app.getEndTime());
+		if (app.getDownload() != null)
+			newElement.setAttribute("download", app.getDownload());
+		if (app.getVersion() != null)
+			newElement.setAttribute("version", app.getVersion());
+		if (app.getAction() != null)
+			newElement.setAttribute("action", app.getAction());
+		document.getFirstChild().appendChild(newElement);
+	}
+	
+	/**
+	 * Update an application in the manifest
+	 * @param app app to replace for
+	 */
+	public void updateApplication (PhoneLabApplication app) {
+		try {
+			Node node = (Node) xpath.evaluate("/manifest/statusmonitor/parameter[@package_name='" + app.getPackageName() + "']", document, XPathConstants.NODE);
+			if (node != null) {//exist 
+				Node parentNode = node.getParentNode();
+				parentNode.removeChild(node);
+				Element newElement = document.createElement("application");
+				if (app.getPackageName() != null)
+					newElement.setAttribute("package_name", app.getPackageName());
+				if (app.getName() != null)
+					newElement.setAttribute("name", app.getName());
+				if (app.getDescription() != null)
+					newElement.setAttribute("description", app.getDescription());
+				if (app.getType() != null)
+					newElement.setAttribute("type", app.getType());
+				if (app.getStartTime() != null)
+					newElement.setAttribute("start_time", app.getStartTime());
+				if (app.getEndTime() != null)
+					newElement.setAttribute("end_time", app.getEndTime());
+				if (app.getDownload() != null)
+					newElement.setAttribute("download", app.getDownload());
+				if (app.getVersion() != null)
+					newElement.setAttribute("version", app.getVersion());
+				if (app.getAction() != null)
+					newElement.setAttribute("action", app.getAction());
+				document.getFirstChild().appendChild(newElement);
+			}
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
+		}
+	}
 
+	/**
+	 * Internal method used to get Document for manifest
+	 * @param fileName
+	 * @return if exists document if not exist null
+	 * @throws ParserConfigurationException
+	 * @throws SAXException
+	 * @throws IOException
+	 */
 	private Document getDocuments(String fileName) throws ParserConfigurationException, SAXException, IOException {
 		DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
 		builderFactory.setNamespaceAware(true);
 		DocumentBuilder builder = builderFactory.newDocumentBuilder();
-		Document document = builder.parse(new File(fileName));
-		return document;
+		File file = new File(fileName);
+		if (file.exists()) {
+			Document document = builder.parse(file);
+			return document;
+		} else {
+			return null;
+		}
 	}
 
-	//call this method to save modified manifest.xml file
+	/**
+	 * Call this method to save modified manifest.xml file  
+	 * @throws TransformerException
+	 */
 	public void saveDocument() throws TransformerException {
 		TransformerFactory tfactory = TransformerFactory.newInstance();
 		Transformer transformer = tfactory.newTransformer();

@@ -6,12 +6,11 @@ package edu.buffalo.cse.phonelab.phonelabservices;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.database.Cursor;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import edu.buffalo.cse.phonelab.database.DatabaseAdapter;
 import edu.buffalo.cse.phonelab.datalogger.LoggerService;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
@@ -30,23 +29,14 @@ public class PhoneLabMainView extends Activity {
         checkForSync();
     }
 
-    /*This method makes sure that server has the device_id and registration_id to send C2D messages*/
+    /**
+     * This method makes sure that server has the device_id and registration_id to send C2D messages
+     */
 	private void checkForSync() {
-		DatabaseAdapter dbAdapter = new DatabaseAdapter(getApplicationContext());
-		dbAdapter.open(1);
-		boolean isSynced = false;
-		Cursor cursor = dbAdapter.selectEntry("device_id='" + Util.getDeviceId(getApplicationContext()) + "'", 0, null, null, null, null);
-		if (cursor.moveToFirst()) {
-			if (cursor.getInt(cursor.getColumnIndex("synced")) == 1) {
-				isSynced = true;
-			}
-		}
-		 
-		cursor.close();
-		dbAdapter.close();
-		
+		SharedPreferences settings = getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
+		boolean isSynced = settings.getBoolean(Util.SHARED_PREFERENCES_SYNC_KEY, false);
 		if (!isSynced) {
-			Log.i(getClass().getSimpleName(), "User info is not synched yet");
+			Log.w(getClass().getSimpleName(), "User info is not synched yet");
 			Intent registrationIntent = new Intent("com.google.android.c2dm.intent.REGISTER");
 	        registrationIntent.putExtra("app", PendingIntent.getBroadcast(this, 0, new Intent(), 0));
 	        registrationIntent.putExtra("sender", "phone.lab.buffalo@gmail.com");
