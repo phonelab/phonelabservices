@@ -42,6 +42,11 @@ public class Util {
 	public static final String SHARED_PREFERENCES_DATA_LOGGER_PID = "logcat_pid";
 	public static final String SHARED_PREFERENCES_DATA_LOGGER_LAST_UPDATE_TIME = "data_logger_last_updated";
 	
+	//Peridic Checks
+	public static final long PERIODIC_CHECK_INTERVAL = 300000;//5 minutes
+	
+	//C2DM
+	public static final String C2DM_EMAIL = "phone.lab.buffalo@gmail.com";
 	
 	//Data logger Constants
 	public final static long UPDATE_INTERVAL = 1000*30;

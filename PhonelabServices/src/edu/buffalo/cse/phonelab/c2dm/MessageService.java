@@ -30,6 +30,7 @@ import android.util.Log;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabApplication;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabManifest;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabParameter;
+import edu.buffalo.cse.phonelab.phonelabservices.PeriodicCheckService;
 import edu.buffalo.cse.phonelab.statusmonitor.StatusMonitor;
 import edu.buffalo.cse.phonelab.utilities.DownloadFile;
 import edu.buffalo.cse.phonelab.utilities.UploadFile;
@@ -50,7 +51,7 @@ public class MessageService extends IntentService {
 			JSONObject jsonObject = new JSONObject(payload);
 			String message = (String) jsonObject.get("message");
 			if (message.equals("new_manifest")) {
-				if (DownloadFile.downloadToDirectory(Util.MANIFEST_DOWNLOAD_URL + Util.getDeviceId(this), Util.NEW_MANIFEST_DIR)) {
+				if (DownloadFile.downloadToDirectory(Util.MANIFEST_DOWNLOAD_URL, Util.NEW_MANIFEST_DIR)) {
 					PhoneLabManifest newManifest = new PhoneLabManifest(Util.NEW_MANIFEST_DIR, getApplicationContext());
 					if (newManifest.getManifest()) {
 						PhoneLabManifest currentManifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR, getApplicationContext());
@@ -63,7 +64,7 @@ public class MessageService extends IntentService {
 							}
 						} else {
 							try {
-								FileOutputStream fos = openFileOutput("manifest.xml", Context.MODE_PRIVATE);
+								FileOutputStream fos = openFileOutput(Util.CURRENT_MANIFEST_DIR, Context.MODE_PRIVATE);
 								File newFile = new File(Util.NEW_MANIFEST_DIR);
 								InputStream newInputStream = new FileInputStream(newFile);
 								byte[] buf = new byte[1024];
@@ -98,7 +99,7 @@ public class MessageService extends IntentService {
 			} else if (message.equals("get_device_info")) {
 				Intent registrationIntent = new Intent("com.google.android.c2dm.intent.REGISTER");
 				registrationIntent.putExtra("app", PendingIntent.getBroadcast(this, 0, new Intent(), 0));
-				registrationIntent.putExtra("sender", "phonelab.at.buffalo@gmail.com");
+				registrationIntent.putExtra("sender", Util.C2DM_EMAIL);
 				startService(registrationIntent);
 			} else if (message.equals("get_device_status")) {
 				UploadDeviceStatus uploadDeviceStatus = new UploadDeviceStatus();
@@ -107,18 +108,23 @@ public class MessageService extends IntentService {
 
 			} else if (message.equals("upload_manifest")) { //Send updated manifest to the server
 				UploadFile uploadManifest = new UploadFile();
-				uploadManifest.upload(getApplicationContext(), Util.MANIFEST_UPLOAD_URL, "manifest.xml");
+				uploadManifest.upload(getApplicationContext(), Util.MANIFEST_UPLOAD_URL, Util.CURRENT_MANIFEST_DIR);
 			} else if (message.equals("uninstall_all_apps")) {
 				uninstallAllApps();
 			} else if (message.equals("remove_manifest")) {
 				uninstallAllApps();
-				File file = new File(Util.CURRENT_MANIFEST_DIR);
-				if (file.delete()) {
-					Log.i(getClass().getSimpleName(), "Downloaded Manifest successfully deleted");
+				if (deleteFile(Util.CURRENT_MANIFEST_DIR)) {
+					Log.i(getClass().getSimpleName(), "Manifest successfully deleted");
 				} else {
-					Log.w(getClass().getSimpleName(), "Downloaded Manifest couldn't be deleted");
+					Log.w(getClass().getSimpleName(), "Manifest couldn't be deleted");
 				}
-			}
+			} else if (message.equals("start_status_monitoring")) {
+				Intent statusMonitorIntent = new Intent(this, StatusMonitor.class);
+				startService(statusMonitorIntent);
+			} else if (message.equals("start_periodic_checking")) {
+				Intent periodicMonitorIntent = new Intent(this, PeriodicCheckService.class);
+				startService(periodicMonitorIntent);
+			} 
 		} catch (JSONException e1) {
 			e1.printStackTrace();
 			Log.w(getClass().getSimpleName(), "C2DM Message cannot be parsed to JSON object!");

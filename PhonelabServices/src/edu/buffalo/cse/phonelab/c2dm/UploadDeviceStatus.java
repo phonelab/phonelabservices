@@ -24,6 +24,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabApplication;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabManifest;
+import edu.buffalo.cse.phonelab.manifest.PhoneLabParameter;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
 public class UploadDeviceStatus {
@@ -51,6 +52,10 @@ public class UploadDeviceStatus {
 				JSONObject jsonObj = new JSONObject(map);
 				nameValuePairs.add(new BasicNameValuePair("apps", jsonObj.toString()));
 				map.clear();
+				map.put("status_monitor_paramaters", getStatParams(context));
+				JSONObject jsonObj2 = new JSONObject(map);
+				nameValuePairs.add(new BasicNameValuePair("status_monitor_paramaters", jsonObj2.toString()));
+				map.clear();
 				httpost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 				response = httpclient.execute(httpost,responseHandler);
 				Log.i(getClass().getSimpleName(), "Response: \n" + response);
@@ -67,6 +72,34 @@ public class UploadDeviceStatus {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * @param context
+	 * @return jSONArray containing all the status monitor parameters
+	 */
+	private JSONArray getStatParams(Context context) {
+		List<JSONObject> statParams = new ArrayList<JSONObject>();
+		PhoneLabManifest manifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR, context);
+		if (manifest.getManifest()) {
+			try {
+				ArrayList<PhoneLabParameter> statusPrameters = manifest.getStatParamaterByConstraints(null);
+				for (PhoneLabParameter param:statusPrameters) {
+					HashMap<String, String> parameterHashMap = new HashMap<String, String>();
+					parameterHashMap.put("name", param.getName());
+					parameterHashMap.put("units", param.getUnits());
+					parameterHashMap.put("value", "" + param.getValue());
+					parameterHashMap.put("set_by", "" + param.getSetBy());
+					JSONObject object = new JSONObject(parameterHashMap);
+					statParams.add(object);
+				}
+			} catch (XPathExpressionException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		JSONArray jsonArray = new JSONArray(statParams);
+		return jsonArray;
 	}
 
 	/**

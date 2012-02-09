@@ -61,17 +61,19 @@ public class StatusMonitor extends Service {
 						}
 						Log.i(getClass().getSimpleName(), "Running interval: " + runInterval);
 
+						Intent locationIntent = new Intent(getApplicationContext(), StatusMonitorLocation.class);
+						this.startService(locationIntent);
 						Intent batteryIntent = new Intent(getApplicationContext(), StatusMonitorBattery.class);
 						this.startService(batteryIntent);
 						Intent signalIntent = new Intent(getApplicationContext(), StatusMonitorSignal.class);
 						this.startService(signalIntent);
+						
+						rescheduleMonitoring();
 					}
 				}
 			} catch (XPathExpressionException e) {
 				e.printStackTrace();
 			}
-
-			rescheduleMonitoring();
 		}
 		return START_STICKY;
 	}

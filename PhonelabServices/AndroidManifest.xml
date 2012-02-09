@@ -15,6 +15,8 @@
     <uses-permission android:name="android.permission.READ_LOGS"/>
     <uses-permission android:name = "android.permission.INSTALL_PACKAGES" />
  	<uses-permission android:name = "android.permission.DELETE_PACKAGES" />
+ 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+ 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <application
         android:icon="@drawable/ic_launcher"
@@ -63,6 +65,9 @@
         </receiver>
         <service android:name="edu.buffalo.cse.phonelab.datalogger.LoggerService"></service>
         <activity android:name="ApplicationList"></activity>
+        <receiver android:name="PeriodicCheckReceiver"></receiver>
+        <service android:name="PeriodicCheckService"></service>
+        <service android:name="edu.buffalo.cse.phonelab.statusmonitor.StatusMonitorLocation"></service>
     </application>
 
 </manifest>
