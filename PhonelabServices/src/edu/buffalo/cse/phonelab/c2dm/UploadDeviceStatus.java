@@ -47,7 +47,7 @@ public class UploadDeviceStatus {
 					nameValuePairs.add(new BasicNameValuePair("reg_id", regId));
 				}
 				HashMap<String, JSONArray> map = new HashMap<String, JSONArray>();
-				map.put("apps", getApss());
+				map.put("apps", getApss(context));
 				JSONObject jsonObj = new JSONObject(map);
 				nameValuePairs.add(new BasicNameValuePair("apps", jsonObj.toString()));
 				map.clear();
@@ -73,9 +73,9 @@ public class UploadDeviceStatus {
 	 * Internal method for reading all the apps from manifest
 	 * @return
 	 */
-	private JSONArray getApss(){
+	private JSONArray getApss(Context context){
 		List<JSONObject> apps = new ArrayList<JSONObject>();
-		PhoneLabManifest manifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR);
+		PhoneLabManifest manifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR, context);
 		if (manifest.getManifest()) {
 			try {
 				ArrayList<PhoneLabApplication> applications = manifest.getAllApplications();

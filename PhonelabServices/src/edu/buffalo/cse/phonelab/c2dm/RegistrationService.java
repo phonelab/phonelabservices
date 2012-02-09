@@ -28,7 +28,6 @@ import edu.buffalo.cse.phonelab.utilities.Util;
 
 public class RegistrationService extends IntentService {
 
-	private static final String URLTOUPLOAD = "http://50.19.247.145/phonelab/register.php";
 	
 	public RegistrationService() {
 		super("RegistrationService");
@@ -44,7 +43,7 @@ public class RegistrationService extends IntentService {
 		Log.i(getClass().getSimpleName(), "Registration Id: " + regId);
 		Log.i(getClass().getSimpleName(), "Sending registration ID to server");
 		HttpClient client = new DefaultHttpClient();
-		HttpPost post = new HttpPost(URLTOUPLOAD); 
+		HttpPost post = new HttpPost(Util.URLTOUPLOAD); 
 		try {
 			ResponseHandler<String> responseHandler = new BasicResponseHandler();
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);

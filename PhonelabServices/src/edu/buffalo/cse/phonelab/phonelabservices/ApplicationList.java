@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import javax.xml.xpath.XPathExpressionException;
 
 import android.app.ListActivity;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -22,16 +24,17 @@ import edu.buffalo.cse.phonelab.utilities.Util;
  * mbulut@buffalo.edu
  */
 public class ApplicationList extends ListActivity {
+	private ArrayList<PhoneLabApplication> applications = null;
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.application_list);
 
-		PhoneLabManifest manifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR);
+		PhoneLabManifest manifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR, getApplicationContext());
 		try {
 			if (manifest.getManifest()) {
-				ArrayList<PhoneLabApplication> applications = manifest.getAllApplications();
+				applications = manifest.getAllApplications();
 				String[] values = new String[applications.size()];
 				String[] descriptions = new String[applications.size()];
 				for (int i = 0;i < applications.size();i++) {
@@ -45,10 +48,37 @@ public class ApplicationList extends ListActivity {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		String item = (String) getListAdapter().getItem(position);
 		Log.i(getClass().getSimpleName(), "Item: " + item + "Position: " + position + " id: " + id);
+		if (applications != null) {
+			PhoneLabApplication app = applications.get(position);
+			if (app.getPackageName() != null) {
+				startingapplication(app);
+			}
+		}
+	}
+
+	/**
+	 * Used to send manually start intents using android.intent.action.MAIN. 
+	 * @param app the phonelab Application
+	 * @param dbAdapter the hook to device database          
+	 * @author rishi baldawa
+	 */
+	private void startingapplication(PhoneLabApplication app) {
+		Log.i(getClass().getSimpleName(), "Starting " + app.getName() + " now...");
+
+		Intent startAppIntent = new Intent(Intent.ACTION_MAIN);
+		PackageManager manager = getPackageManager();
+		try {
+			startAppIntent = manager.getLaunchIntentForPackage(app.getPackageName());
+			startAppIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+			startActivity(startAppIntent);
+		} catch( Exception e ) {
+			e.printStackTrace();
+			Log.w(getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
+		}
 	}
 }

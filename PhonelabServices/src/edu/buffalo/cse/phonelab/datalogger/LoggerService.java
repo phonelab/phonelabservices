@@ -15,14 +15,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Binder;
 import android.os.Environment;
 import android.os.IBinder;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -38,7 +36,7 @@ import edu.buffalo.cse.phonelab.utilities.Util;
 public class LoggerService extends Service {
 	private final IBinder mBinder = new LogBinder();
 	private Timer timer = new Timer();
-	private final String LOG_DIR = Environment.getExternalStorageDirectory() + "/" + DataLoggerConstants.LOG_DIR + "/";
+	private final String LOG_DIR = Environment.getExternalStorageDirectory() + "/" + Util.LOG_DIR + "/";
 	private SharedPreferences settings;
 	private Editor editor;
 	
@@ -61,7 +59,7 @@ public class LoggerService extends Service {
 				checkLogCatProcess();
 				
 			}
-		},0, DataLoggerConstants.UPDATE_INTERVAL);
+		},0, Util.UPDATE_INTERVAL);
 	}
 	
 	/**
@@ -70,6 +68,7 @@ public class LoggerService extends Service {
 	private void checkLogCatProcess() {
 		List<Integer> pids = getPID("logcat");
 		int pidFromDb = settings.getInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, -1);
+		Log.i(getClass().getSimpleName(), "Logcat pid from database " + pidFromDb);
 		boolean foundLogCat = false;
 		if (pids.size() > 0) {
 			for(int pid:pids) {
@@ -101,7 +100,7 @@ public class LoggerService extends Service {
 	
 	private boolean logFileThreshold() {
 		File f = new File(LOG_DIR + "log.out");
-		boolean threshold = f.length() < DataLoggerConstants.THRESHOLD * 1024;
+		boolean threshold = f.length() < Util.THRESHOLD * 1024;
 		Log.i(getClass().getSimpleName(), "Checking Threshold ... " + threshold);
 		return threshold;
 	}
@@ -127,8 +126,7 @@ public class LoggerService extends Service {
 		String line = "";
 		AsyncHttpClient client = new AsyncHttpClient();
 		RequestParams params = new RequestParams();
-		String deviceId = ((TelephonyManager)getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
-		String url = DataLoggerConstants.POST_URL + "?deviceId=" + deviceId;
+		String url = Util.POST_URL + Util.getDeviceId(getApplicationContext()) + "/";
 		
 		// If Log file exists in the directory
 		if (allFiles.length > 1) {
@@ -241,12 +239,14 @@ public class LoggerService extends Service {
 			Log.i(getClass().getSimpleName(), "Logcat process not found, starting process");
 			// create log dir if it doesn`t exist
 			createLogDir();
-			Runtime.getRuntime().exec("logcat -v long -f " + LOG_DIR + "log.out -r " + DataLoggerConstants.LOG_FILE_SIZE + " -n " + DataLoggerConstants.AUX_LOG_FILES + " &");
+			Runtime.getRuntime().exec("logcat -v long -f " + LOG_DIR + "log.out -r " + Util.LOG_FILE_SIZE + " -n " + Util.AUX_LOG_FILES + " &");
 			pid = getPID("logcat").iterator().next();
 	        editor.putInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, pid);
+	        editor.commit();
 	        Log.i(getClass().getSimpleName(), "PID to db" + pid);
 		} catch (IOException e) {
-			Log.w(getClass().getSimpleName(), e.getMessage());
+			e.printStackTrace();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

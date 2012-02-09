@@ -3,16 +3,26 @@
  */
 package edu.buffalo.cse.phonelab.c2dm;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.IntentService;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Environment;
@@ -27,13 +37,6 @@ import edu.buffalo.cse.phonelab.utilities.Util;
 
 public class MessageService extends IntentService {
 
-	private static final String MANIFEST_DOWNLOAD_URL = "http://50.19.247.145/phonelab/server/new_manifest.xml";//url to download manifest
-	private static final String NEW_MANIFEST_DIR = "/sdcard/new_manifest.xml";//directory to download new manifest
-	private static final String CURRENT_MANIFEST_DIR = "/sdcard/manifest.xml";//directory for current, latest manifest 
-	private static final String APP_DOWNLOAD_URL = "http://50.19.247.145/phonelab/server/";//base url to download application 
-	private static final String MANIFEST_UPLOAD_URL = "http://50.19.247.145/phonelab/upload_manifest.php";
-	private static final String DEVICE_STATUS_UPLOAD_URL = "http://50.19.247.145/phonelab/device_status_upload.php";
-
 	public MessageService() {
 		super("MessageService");
 	}
@@ -42,68 +45,83 @@ public class MessageService extends IntentService {
 	protected void onHandleIntent(Intent intent) {
 		Log.i(getClass().getSimpleName(), "C2DM Message Service is started!");
 
-		String message = intent.getExtras().getString("message");
-		if (message.equals("new_manifest")) {
-			if (DownloadFile.downloadToDirectory(MANIFEST_DOWNLOAD_URL, NEW_MANIFEST_DIR)) {
-				PhoneLabManifest newManifest = new PhoneLabManifest(NEW_MANIFEST_DIR);
-				if (newManifest.getManifest()) {
-					PhoneLabManifest currentManifest = new PhoneLabManifest(CURRENT_MANIFEST_DIR);
-					if (currentManifest.getManifest()) {
-						handleExistingManifest(currentManifest, newManifest);
-						try {
-							currentManifest.saveDocument();
-						} catch (TransformerException e) {
-							e.printStackTrace();
-						}
-					} else {
-						File newFile = new File(NEW_MANIFEST_DIR);
-						if (newFile.renameTo(new File(CURRENT_MANIFEST_DIR))) {
-							Log.i(getClass().getSimpleName(), "Renaming successful!");
-							PhoneLabManifest currentManifest2 = new PhoneLabManifest(CURRENT_MANIFEST_DIR);
-							if (currentManifest2.getManifest()) {
-								handleNewManifest(currentManifest2);
-								try {
-									currentManifest2.saveDocument();
-								} catch (TransformerException e) {
-									e.printStackTrace();
-								}
+		String payload = intent.getExtras().getString("payload");
+		try {
+			JSONObject jsonObject = new JSONObject(payload);
+			String message = (String) jsonObject.get("message");
+			if (message.equals("new_manifest")) {
+				if (DownloadFile.downloadToDirectory(Util.MANIFEST_DOWNLOAD_URL + Util.getDeviceId(this), Util.NEW_MANIFEST_DIR)) {
+					PhoneLabManifest newManifest = new PhoneLabManifest(Util.NEW_MANIFEST_DIR, getApplicationContext());
+					if (newManifest.getManifest()) {
+						PhoneLabManifest currentManifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR, getApplicationContext());
+						if (currentManifest.getManifest()) {
+							handleExistingManifest(currentManifest, newManifest);
+							try {
+								currentManifest.saveDocument();
+							} catch (TransformerException e) {
+								e.printStackTrace();
 							}
 						} else {
-							Log.w(getClass().getSimpleName(), "Renaming falied!");
+							try {
+								FileOutputStream fos = openFileOutput("manifest.xml", Context.MODE_PRIVATE);
+								File newFile = new File(Util.NEW_MANIFEST_DIR);
+								InputStream newInputStream = new FileInputStream(newFile);
+								byte[] buf = new byte[1024];
+								int len;
+								while ((len = newInputStream.read(buf)) > 0){
+									fos.write(buf, 0, len);
+								}
+								newInputStream.close();
+								fos.close();
+								
+								Log.i(getClass().getSimpleName(), "New manifest transfered to Current manifest!");
+								PhoneLabManifest currentManifest2 = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR, getApplicationContext());
+								if (currentManifest2.getManifest()) {
+									handleNewManifest(currentManifest2);
+									try {
+										currentManifest2.saveDocument();
+									} catch (TransformerException e) {
+										e.printStackTrace();
+									}
+								}
+							} catch (FileNotFoundException e1) {
+								e1.printStackTrace();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
 						}
 					}
-				}
 
-				File file = new File(NEW_MANIFEST_DIR);
+					//Remove manifest from where it is downloaded
+					removeFile (Util.NEW_MANIFEST_DIR);
+				}
+			} else if (message.equals("get_device_info")) {
+				Intent registrationIntent = new Intent("com.google.android.c2dm.intent.REGISTER");
+				registrationIntent.putExtra("app", PendingIntent.getBroadcast(this, 0, new Intent(), 0));
+				registrationIntent.putExtra("sender", "phonelab.at.buffalo@gmail.com");
+				startService(registrationIntent);
+			} else if (message.equals("get_device_status")) {
+				UploadDeviceStatus uploadDeviceStatus = new UploadDeviceStatus();
+				uploadDeviceStatus.uploadDeviceStatus(getApplicationContext(), Util.DEVICE_STATUS_UPLOAD_URL + Util.getDeviceId(getApplicationContext()));
+			} else if (message.equals("flash")) {
+
+			} else if (message.equals("upload_manifest")) { //Send updated manifest to the server
+				UploadFile uploadManifest = new UploadFile();
+				uploadManifest.upload(getApplicationContext(), Util.MANIFEST_UPLOAD_URL, "manifest.xml");
+			} else if (message.equals("uninstall_all_apps")) {
+				uninstallAllApps();
+			} else if (message.equals("remove_manifest")) {
+				uninstallAllApps();
+				File file = new File(Util.CURRENT_MANIFEST_DIR);
 				if (file.delete()) {
-					Log.i(getClass().getSimpleName(), "New manifest successfully deleted");
+					Log.i(getClass().getSimpleName(), "Downloaded Manifest successfully deleted");
 				} else {
-					Log.w(getClass().getSimpleName(), "New manifest cannot be deleted");
+					Log.w(getClass().getSimpleName(), "Downloaded Manifest couldn't be deleted");
 				}
 			}
-		} else if (message.equals("get_device_info")) {
-			Intent registrationIntent = new Intent("com.google.android.c2dm.intent.REGISTER");
-			registrationIntent.putExtra("app", PendingIntent.getBroadcast(this, 0, new Intent(), 0));
-			registrationIntent.putExtra("sender", "phonelab.at.buffalo@gmail.com");
-			startService(registrationIntent);
-		} else if (message.equals("get_device_status")) {
-			UploadDeviceStatus uploadDeviceStatus = new UploadDeviceStatus();
-			uploadDeviceStatus.uploadDeviceStatus(getApplicationContext(), DEVICE_STATUS_UPLOAD_URL);
-		} else if (message.equals("flash")) {
-
-		} else if (message.equals("upload_manifest")) { //Send updated manifest to the server
-			UploadFile uploadManifest = new UploadFile();
-			uploadManifest.upload(getApplicationContext(), MANIFEST_UPLOAD_URL, "manifest.xml");
-		} else if (message.equals("uninstall_all_apps")) {
-			uninstallAllApps();
-		} else if (message.equals("remove_manifest")) {
-			uninstallAllApps();
-			File file = new File(CURRENT_MANIFEST_DIR);
-			if (file.delete()) {
-				Log.i(getClass().getSimpleName(), "Downloaded Manifest successfully deleted");
-			} else {
-				Log.w(getClass().getSimpleName(), "Downloaded Manifest couldn't be deleted");
-			}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			Log.w(getClass().getSimpleName(), "C2DM Message cannot be parsed to JSON object!");
 		}
 
 		Log.i(getClass().getSimpleName(), "C2DM Message Service is done!");
@@ -113,7 +131,7 @@ public class MessageService extends IntentService {
 	 * This method uninstall all the applications from both manifest and device
 	 */
 	private void uninstallAllApps() {
-		PhoneLabManifest manifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR);
+		PhoneLabManifest manifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR, getApplicationContext());
 		if (manifest.getManifest()) {
 			try {
 				ArrayList<PhoneLabApplication> applications = manifest.getAllApplications();
@@ -128,7 +146,7 @@ public class MessageService extends IntentService {
 			} catch (XPathExpressionException e) {
 				e.printStackTrace();
 			}
-			
+
 			try {
 				manifest.saveDocument();
 			} catch (TransformerException e) {
@@ -167,16 +185,6 @@ public class MessageService extends IntentService {
 		try {
 			ArrayList<PhoneLabParameter> parameters = currentManifest.getStatParamaterByConstraints(null);
 			if (parameters.size() > 0) {
-				for (PhoneLabParameter param:parameters) {
-					HashMap<String, String> constraints = new HashMap<String, String>();
-					constraints.put("name", param.getName());
-					ArrayList<PhoneLabParameter> currentParameters = currentManifest.getStatParamaterByConstraints(constraints);
-					if (currentParameters != null && currentParameters.size() == 1) {//Parameter exists
-						currentManifest.updateStatParameter(param);
-					} else {//Parameter does not exist
-						currentManifest.addStatParameters(param);
-					}
-				}
 				startStatusMonitor(currentManifest);
 			}
 		} catch (XPathExpressionException e) {
@@ -232,6 +240,13 @@ public class MessageService extends IntentService {
 						currentManifest.addStatParameters(param);
 					}
 				}
+				
+				try {
+					currentManifest.saveDocument();
+				} catch (TransformerException e) {
+					e.printStackTrace();
+				}
+				
 				startStatusMonitor(currentManifest);
 			}
 		} catch (XPathExpressionException e) {
@@ -245,21 +260,40 @@ public class MessageService extends IntentService {
 	 * @return true if successful, otherwise false
 	 */
 	public boolean installApplication (PhoneLabApplication app) {
-		if (DownloadFile.downloadToDirectory(APP_DOWNLOAD_URL + app.getDownload(), Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
+		if (DownloadFile.downloadToDirectory(Util.APP_DOWNLOAD_URL + app.getDownload(), Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
 			Log.i(getClass().getSimpleName(), "Installing " + app.getName() + " now...");
 			try {
 				Process process = Runtime.getRuntime().exec("pm install " + Environment.getExternalStorageDirectory() + "/" + app.getDownload());
-				int statusCode = process.waitFor();
-				Log.i(getClass().getSimpleName(), "Status Code: " + statusCode);
-				if (statusCode == 0) {
-					if (app.getType().equals("background")) {//start it in the background
-						//startingapplication(app);
-					} else if (app.getType().equals("interactive")) {//notify user
-						new Util().nofityUser(this, "PhoneLab-New Application", "" + app.getName() + " is installed on your device");
-					}
 
-					return true;
+				String line = null;
+				//Success to install APK
+				BufferedReader buf_i = new BufferedReader(new InputStreamReader(process.getInputStream()));
+				BufferedReader buf_e = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+				while((line = buf_i.readLine()) != null){
+					if(line.compareTo("Success") == 0){
+						if (app.getType().equals("background")) {//start it in the background
+							startingapplication(app);
+						} else if (app.getType().equals("interactive")) {//notify user
+							new Util().nofityUser(this, "PhoneLab", "" + app.getName() + " is installed on your device");
+						}
+						Log.i(getClass().getSimpleName(), app.getName() + " installed successfully");
+
+						//Remove .apk from where it is downloaded
+						removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+						return true;
+					}
 				}
+				buf_i.close();
+
+				//failure to install APK
+				while((line = buf_e.readLine()) != null){
+					if(line.split(" ")[0].compareTo("Failure") == 0){
+						Log.i(getClass().getSimpleName(), app.getName() + " couldn't be installed");
+					}
+				}
+
+				buf_e.close();
+				process.waitFor();
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (InterruptedException e) {
@@ -267,15 +301,19 @@ public class MessageService extends IntentService {
 			}
 
 			//Remove .apk from where it is downloaded
-			File file = new File(Environment.getExternalStorageDirectory() + "/" + app.getDownload());
-			if (file.delete()) {
-				Log.i(getClass().getSimpleName(), "Downloaded .apk file for " + app.getName() + " deleted successfully");
-			} else {
-				Log.w(getClass().getSimpleName(), "Downloaded .apk file for " + app.getName() + " couldn't be deleted");
-			}
+			removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
 		}
 
 		return false;
+	}
+	
+	private void removeFile (String path) {
+		File file = new File(path);
+		if (file.delete()) {
+			Log.i(getClass().getSimpleName(), "File at " + path + " deleted successfully");
+		} else {
+			Log.w(getClass().getSimpleName(), "File at " + path + " couldn't be deleted");
+		}
 	}
 
 	/**
@@ -284,28 +322,47 @@ public class MessageService extends IntentService {
 	 * @return true if successful, otherwise false
 	 */
 	private boolean updateApplication(PhoneLabApplication app) {
-		if (DownloadFile.downloadToDirectory(APP_DOWNLOAD_URL + app.getName() + ".apk", Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
+		if (DownloadFile.downloadToDirectory(Util.APP_DOWNLOAD_URL + app.getName() + ".apk", Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
 			Log.i(getClass().getSimpleName(), "Updating " + app.getName() + " now...");
 			try {
-				Runtime.getRuntime().exec("pm install " + Environment.getExternalStorageDirectory() + "/" + app.getDownload());
-				if (app.getType().equals("background")) {//start it in the background
-					//startingapplication(app);
-				} else if (app.getType().equals("interactive")) {//notify user
-					new Util().nofityUser(this, "PhoneLab-", app.getName() + " is updated");
-				}
+				Process process = Runtime.getRuntime().exec("pm -r install " + Environment.getExternalStorageDirectory() + "/" + app.getDownload());
 
-				return true;
+				String line = null;
+				//Success to install APK
+				BufferedReader buf_i = new BufferedReader(new InputStreamReader(process.getInputStream()));
+				BufferedReader buf_e = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+				while((line = buf_i.readLine()) != null){
+					if(line.compareTo("Success") == 0){
+						if (app.getType().equals("background")) {//start it in the background
+							startingapplication(app);
+						} else if (app.getType().equals("interactive")) {//notify user
+							new Util().nofityUser(this, "PhoneLab", app.getName() + " is updated");
+						}
+						Log.i(getClass().getSimpleName(), app.getName() + " updated successfully");
+
+						//Remove .apk from where it is downloaded
+						removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+						return true;
+					}
+				}
+				buf_i.close();
+
+				//failure to install APK
+				while((line = buf_e.readLine()) != null){
+					if(line.split(" ")[0].compareTo("Failure") == 0){
+						Log.i(getClass().getSimpleName(), app.getName() + " couldn't be updated");
+					}
+				}
+				buf_e.close();
+				process.waitFor();
 			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 
 			//Remove .apk from where it is downloaded
-			File file = new File(Environment.getExternalStorageDirectory() + "/" + app.getDownload());
-			if (file.delete()) {
-				Log.i(getClass().getSimpleName(), "Downloaded .apk file for " + app.getName() + " deleted successfully");
-			} else {
-				Log.w(getClass().getSimpleName(), "Downloaded .apk file for " + app.getName() + " couldn't be deleted");
-			}
+			removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
 		}
 
 		return false;
@@ -320,15 +377,23 @@ public class MessageService extends IntentService {
 		Log.i(getClass().getSimpleName(), "Removing " + app.getName() + " now...");
 		try {
 			Process process = Runtime.getRuntime().exec("pm uninstall " + app.getPackageName());
-			int statusCode = process.waitFor();
-			Log.i(getClass().getSimpleName(), "Status Code: " + statusCode);
+			String line = null;
+			BufferedReader buf_i = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			while((line = buf_i.readLine()) != null){
+				if(line.compareTo("Success") == 0){
+					//Success to uninstall APK
+					new Util().nofityUser(this, "PhoneLab", app.getName() + " is uninstalled");
+					Log.i(getClass().getSimpleName(), app.getName() + " uninstalled successfully");
+					return true;
 
-			if (statusCode == 0) {
-				//Update database here 
-				new Util().nofityUser(this, "PhoneLab-", app.getName() + " is uninstalled");
-
-				return true;
+				} else {
+					//failure to uninstall APK
+					Log.i(getClass().getSimpleName(), app.getName() + " couldn't be uninstalled");
+				}
 			}
+			buf_i.close();
+
+			process.waitFor();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
@@ -344,20 +409,8 @@ public class MessageService extends IntentService {
 	 * @param currentManifest 
 	 */
 	private void startStatusMonitor(PhoneLabManifest currentManifest) {
-		HashMap<String, String> constraintMap = new HashMap<String, String>();
-		constraintMap.put("name", "runInterval");
-		try {
-			ArrayList<PhoneLabParameter> parameters = currentManifest.getStatParamaterByConstraints(constraintMap);
-			if (parameters != null && parameters.size() == 1) {
-				PhoneLabParameter param = parameters.get(0);
-				Intent statusMonitorIntent = new Intent(getApplicationContext(), StatusMonitor.class);
-				statusMonitorIntent.putExtra("units", param.getUnits());
-				statusMonitorIntent.putExtra("value", param.getValue());
-				this.startService(statusMonitorIntent);
-			}
-		} catch (XPathExpressionException e) {
-			e.printStackTrace();
-		}
+		Intent statusMonitorIntent = new Intent(getApplicationContext(), StatusMonitor.class);
+		this.startService(statusMonitorIntent);
 	}
 
 	/**
@@ -368,17 +421,22 @@ public class MessageService extends IntentService {
 	 */
 	private void startingapplication(PhoneLabApplication app) {
 		Log.i(getClass().getSimpleName(), "Starting " + app.getName() + " now...");
-		Intent startAppIntent = new Intent(Intent.ACTION_MAIN);
-		PackageManager manager = getPackageManager();
-		try {
-			startAppIntent = manager.getLaunchIntentForPackage(app.getPackageName());
-		} catch( Exception e ) {
-			e.printStackTrace();
-			Log.w(getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
-		}
 
-		startAppIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-		startActivity(startAppIntent);
+		if (app.getType().equals("interactive")) {
+			Intent startAppIntent = new Intent(Intent.ACTION_MAIN);
+			PackageManager manager = getPackageManager();
+			try {
+				startAppIntent = manager.getLaunchIntentForPackage(app.getPackageName());
+				startAppIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+				startActivity(startAppIntent);
+			} catch( Exception e ) {
+				e.printStackTrace();
+				Log.w(getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
+			}
+		} else if (app.getType().equals("background")) {
+			Intent intent = new Intent(app.getIntentName());
+			startService(intent);
+		}
 
 		return;
 	}
@@ -389,21 +447,21 @@ public class MessageService extends IntentService {
 	 * @param app the phonelab Application
 	 * @author rishi baldawa
 	 */
-	/*private void stoppingapplication(PhoneLabApplication app) {
+	@SuppressWarnings("unused")
+	private void stoppingapplication(PhoneLabApplication app) {
 		Log.i(getClass().getSimpleName(), "Stopping " + app.getName() + " now...");
 		Intent stopAppIntent = new Intent(Intent.ACTION_MAIN);
 		PackageManager manager = getPackageManager();
 		try {
 			stopAppIntent = manager.getLaunchIntentForPackage(app.getPackageName());
+			stopAppIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+			stopService(stopAppIntent);
 		} catch( Exception e ) {
 			e.printStackTrace();
 			Log.w(getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
 		}
 
-		stopAppIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-		stopService(stopAppIntent);
-
 		return;
-	}*/
+	}
 }
 

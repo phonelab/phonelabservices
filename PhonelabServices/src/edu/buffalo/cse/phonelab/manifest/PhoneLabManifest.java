@@ -7,6 +7,9 @@
 package edu.buffalo.cse.phonelab.manifest;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,15 +35,19 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import android.content.Context;
+
 public class PhoneLabManifest {
 	private Document document = null;
 	private XPath xpath = null;
 	private String xmlFullPath;
-	
-	public PhoneLabManifest (String xmlFullPath) {
+	private Context context = null;
+
+	public PhoneLabManifest (String xmlFullPath, Context context) {
 		this.xmlFullPath = xmlFullPath;
+		this.context = context;
 	}
-	
+
 	/**
 	 * Method to get manifest. This method make sure that manifest exists. Caller should make sure to handle correctly if return null
 	 * @return true if manifest exists otherwise return false
@@ -58,7 +65,7 @@ public class PhoneLabManifest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		return false;
 	}
 
@@ -109,7 +116,7 @@ public class PhoneLabManifest {
 
 		return appList;
 	}
-	
+
 	/**
 	 * Set an application or applications based on the constraintMap
 	 * @param constraintMap: map of keys and values for selecting application
@@ -211,7 +218,7 @@ public class PhoneLabManifest {
 			}
 		}
 	}
-	
+
 	/**
 	 * Add Status Monitor Parameter to manifest
 	 * @param param parameter to add
@@ -226,7 +233,7 @@ public class PhoneLabManifest {
 		} else {
 			statusElement = (Element) node;
 		}
-		
+
 		Element newElement = document.createElement("parameter");
 		if (param.getUnits() != null)
 			newElement.setAttribute("units", param.getUnits());
@@ -236,7 +243,7 @@ public class PhoneLabManifest {
 			newElement.setAttribute("set_by", param.getSetBy());
 		statusElement.appendChild(newElement);
 	}
-	
+
 	/**
 	 * Update Status Monitor Parameter 
 	 * @param param parameter to replace
@@ -247,6 +254,8 @@ public class PhoneLabManifest {
 		Node pNode = (Node) xpath.evaluate("parameter[@name='" + param.getName() +  "']", statusElement, XPathConstants.NODE);
 		statusElement.removeChild(pNode);
 		Element newElement = document.createElement("parameter");
+		if (param.getName() != null)
+			newElement.setAttribute("name", param.getName());
 		if (param.getUnits() != null)
 			newElement.setAttribute("units", param.getUnits());
 		if (param.getValue() != null)
@@ -310,7 +319,7 @@ public class PhoneLabManifest {
 			}
 		}
 	}
-	
+
 	/**
 	 * Add an application to manifest
 	 * @param app
@@ -337,7 +346,7 @@ public class PhoneLabManifest {
 			newElement.setAttribute("action", app.getAction());
 		document.getFirstChild().appendChild(newElement);
 	}
-	
+
 	/**
 	 * Update an application in the manifest
 	 * @param app app to replace for
@@ -386,11 +395,25 @@ public class PhoneLabManifest {
 		DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
 		builderFactory.setNamespaceAware(true);
 		DocumentBuilder builder = builderFactory.newDocumentBuilder();
-		File file = new File(fileName);
-		if (file.exists()) {
-			Document document = builder.parse(file);
-			return document;
+
+		if (fileName.contains("new_manifest")) {
+			File file = new File(fileName);
+			if (file.exists()) {
+				Document document = builder.parse(file);
+				return document;
+			} else {
+				return null;
+			}
 		} else {
+			try {
+				FileInputStream fos = context.openFileInput(fileName);
+				Document document = builder.parse(fos);
+				fos.close();
+				return document;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
 			return null;
 		}
 	}
@@ -403,7 +426,21 @@ public class PhoneLabManifest {
 		TransformerFactory tfactory = TransformerFactory.newInstance();
 		Transformer transformer = tfactory.newTransformer();
 		DOMSource source = new DOMSource(document);
-		StreamResult result = new StreamResult(new File(xmlFullPath));
-		transformer.transform(source, result);
+
+		if (xmlFullPath.contains("new_manifest")) {
+			StreamResult result = new StreamResult(new File(xmlFullPath));
+			transformer.transform(source, result);
+		} else {
+			try {
+				FileOutputStream fos = context.openFileOutput(xmlFullPath, Context.MODE_PRIVATE);
+				StreamResult result = new StreamResult(fos);
+				transformer.transform(source, result);
+				fos.close();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

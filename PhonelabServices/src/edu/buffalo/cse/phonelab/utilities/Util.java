@@ -14,13 +14,44 @@ import edu.buffalo.cse.phonelab.phonelabservices.R;
 
 public class Util {
 
+	/*public static final String MANIFEST_DOWNLOAD_URL = "http://50.19.247.145/phonelab/server/new_manifest.xml";//url to download manifest
+	public static final String NEW_MANIFEST_DIR = "/sdcard/new_manifest.xml";//directory to download new manifest
+	public static final String CURRENT_MANIFEST_DIR = "manifest.xml";//directory for current, latest manifest 
+	public static final String APP_DOWNLOAD_URL = "http://50.19.247.145/phonelab/server/";//base url to download application 
+	public static final String MANIFEST_UPLOAD_URL = "http://50.19.247.145/phonelab/upload_manifest.php";
+	public static final String DEVICE_STATUS_UPLOAD_URL = "http://50.19.247.145/phonelab/device_status_upload.php";
+	
+	public static final String SHARED_PREFERENCES_FILE_NAME = "phonelab_settings";
+	public static final String SHARED_PREFERENCES_REG_ID_KEY = "reg_id";
+	public static final String SHARED_PREFERENCES_SYNC_KEY = "is_synced";
+	public static final String SHARED_PREFERENCES_DATA_LOGGER_PID = "logcat_pid";
+	public static final String SHARED_PREFERENCES_DATA_LOGGER_LAST_UPDATE_TIME = "data_logger_last_updated";*/
+	
+	
+	public static final String MANIFEST_DOWNLOAD_URL = "http://107.20.190.88/manifest/";//url to download manifest
+	public static final String NEW_MANIFEST_DIR = "/sdcard/new_manifest.xml";//directory to download new manifest
+	public static final String CURRENT_MANIFEST_DIR = "manifest.xml";//directory for current, latest manifest 
+	public static final String APP_DOWNLOAD_URL = "http://107.20.190.88/experiment/";//base url to download application 
+	public static final String MANIFEST_UPLOAD_URL = "http://50.19.247.145/phonelab/upload_manifest.php";
+	public static final String DEVICE_STATUS_UPLOAD_URL = "http://107.20.190.88/";
+	public static final String URLTOUPLOAD = "http://107.20.190.88/device/";
+	
 	public static final String SHARED_PREFERENCES_FILE_NAME = "phonelab_settings";
 	public static final String SHARED_PREFERENCES_REG_ID_KEY = "reg_id";
 	public static final String SHARED_PREFERENCES_SYNC_KEY = "is_synced";
 	public static final String SHARED_PREFERENCES_DATA_LOGGER_PID = "logcat_pid";
 	public static final String SHARED_PREFERENCES_DATA_LOGGER_LAST_UPDATE_TIME = "data_logger_last_updated";
 	
-	public static final String CURRENT_MANIFEST_DIR = "/sdcard/manifest.xml";//directory for current, latest manifest
+	
+	//Data logger Constants
+	public final static long UPDATE_INTERVAL = 1000*30;
+	public final static String TAG = "LogService";
+	public final static int LOG_FILE_SIZE = 10;//KB
+	public final static int AUX_LOG_FILES = 10;
+	public final static String LOG_DIR = "log";
+	public final static long THRESHOLD = 7;
+	public final static String POST_URL = "http://107.20.190.88/log/";
+	
 	public static String getDeviceId (Context context) {
 		TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
 		return tm.getDeviceId();
