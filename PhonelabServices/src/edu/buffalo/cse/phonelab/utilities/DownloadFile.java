@@ -42,14 +42,14 @@ public class DownloadFile {
 				counter += current/1024;
 				fos.write(buf, 0, current);
 				current = bis.read(buf, 0, BUFFER_SIZE);
-				Log.i("edu.buffalo.cse.phonelab.controller", counter + " bytes downloaded");
+				Log.i("PhoneLab-" + "edu.buffalo.cse.phonelab.controller", counter + " bytes downloaded");
 			}
 			fos.close();
-			Log.i("edu.buffalo.cse.phonelab.controller", "Download completed in" + ((System.currentTimeMillis() - startTime) / 1000) + " sec");
+			Log.i("PhoneLab-" + "edu.buffalo.cse.phonelab.controller", "Download completed in" + ((System.currentTimeMillis() - startTime) / 1000) + " sec");
 
 			return true;
 		} catch (IOException e) {
-			Log.w("edu.buffalo.cse.phonelab.controller", "Download Failed! Error: " + e);
+			Log.w("PhoneLab-" + "edu.buffalo.cse.phonelab.controller", "Download Failed! Error: " + e);
 		}
 
 		return false;

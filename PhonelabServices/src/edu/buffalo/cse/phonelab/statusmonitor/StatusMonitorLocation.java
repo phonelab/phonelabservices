@@ -9,6 +9,8 @@ package edu.buffalo.cse.phonelab.statusmonitor;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import edu.buffalo.cse.phonelab.utilities.Locks;
+
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -31,13 +33,16 @@ public class StatusMonitorLocation extends Service {
 	}
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.i(getClass().getSimpleName(), "Learning Location");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Learning Location");
 
+		Locks.acquireWakeLock(this);
+		
 		timer = new Timer();
 		timer.schedule(new TimerTask() {
 			public void run() {
 				locationManager.removeUpdates(locationListener);
-				Log.i(getClass().getSimpleName(), "Couldn't learn location");
+				Log.i("PhoneLab-" + getClass().getSimpleName(), "Couldn't learn location");
+				Locks.releaseWakeLock();
 				StatusMonitorLocation.this.stopSelf();
 			}
 		}, 60000*1);
@@ -52,13 +57,14 @@ public class StatusMonitorLocation extends Service {
 				if (location.getAccuracy() < 3000 && location.getTime() > System.currentTimeMillis() - 20000) {
 					locationManager.removeUpdates(this);
 					timer.cancel();
-					Log.i(getClass().getSimpleName(),
+					Log.i("PhoneLab-" + getClass().getSimpleName(),
 							"Location: Latitude: "
 									+ location.getLatitude()
 									+ " Longitude: "
 									+ location.getLongitude()
 									+ " Accuracy: " + location.getAccuracy());
 
+					Locks.releaseWakeLock();
 					StatusMonitorLocation.this.stopSelf();
 				}
 			}

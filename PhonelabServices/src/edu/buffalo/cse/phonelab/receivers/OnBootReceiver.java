@@ -12,7 +12,7 @@ import android.util.Log;
 public class OnBootReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		Log.i(getClass().getSimpleName(), "Device is booted!");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Device is booted!");
 		
 		Intent periodicServiceIntent = new Intent(context, PeriodicCheckService.class);
 		context.startService(periodicServiceIntent);

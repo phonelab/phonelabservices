@@ -20,6 +20,7 @@ import android.os.SystemClock;
 import android.util.Log;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabManifest;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabParameter;
+import edu.buffalo.cse.phonelab.utilities.Locks;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
 public class StatusMonitor extends Service {
@@ -33,7 +34,7 @@ public class StatusMonitor extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.i(getClass().getSimpleName(), "Status Monitoring is started");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Status Monitoring is started");
 
 		PhoneLabManifest manifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR, getApplicationContext());
 		if (manifest.getManifest()) {
@@ -48,7 +49,7 @@ public class StatusMonitor extends Service {
 						long value = Long.parseLong(param.getValue());
 						String units = param.getUnits();
 
-						Log.i(getClass().getSimpleName(), "Value: " + value + " - unit: " + units);
+						Log.i("PhoneLab-" + getClass().getSimpleName(), "Value: " + value + " - unit: " + units);
 
 						if (units.equals("hour")) {
 							runInterval = value *  60 * 60 * 1000;
@@ -59,7 +60,7 @@ public class StatusMonitor extends Service {
 						} else if (units.equals("milisec")) {
 							runInterval = value;
 						}
-						Log.i(getClass().getSimpleName(), "Running interval: " + runInterval);
+						Log.i("PhoneLab-" + getClass().getSimpleName(), "Running interval: " + runInterval);
 
 						Intent locationIntent = new Intent(getApplicationContext(), StatusMonitorLocation.class);
 						this.startService(locationIntent);
@@ -75,6 +76,9 @@ public class StatusMonitor extends Service {
 				e.printStackTrace();
 			}
 		}
+		
+		Locks.releaseWakeLock();
+		
 		return START_STICKY;
 	}
 
@@ -83,7 +87,7 @@ public class StatusMonitor extends Service {
 	 * If there exist an already set up alarm, it will first cancel it 
 	 */
 	private void rescheduleMonitoring() {
-		Log.i(getClass().getSimpleName(), "Rescheduling status monitoring...");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Rescheduling status monitoring...");
 		AlarmManager mgr = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
 		Intent newIntent = new Intent(getApplicationContext(), StatusMonitorReceiver.class);
 		PendingIntent pending = PendingIntent.getBroadcast(getApplicationContext(), 0, newIntent, PendingIntent.FLAG_CANCEL_CURRENT);

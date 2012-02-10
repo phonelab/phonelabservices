@@ -24,6 +24,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.util.Log;
+import edu.buffalo.cse.phonelab.utilities.Locks;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
 public class RegistrationService extends IntentService {
@@ -35,13 +36,13 @@ public class RegistrationService extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		Log.i(getClass().getSimpleName(), "C2DM Registration Service is started!");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "C2DM Registration Service is started!");
 		Bundle extras = intent.getExtras();
 		String deviceId = extras.getString("device_id");
 		String regId = extras.getString("reg_id");
 		
-		Log.i(getClass().getSimpleName(), "Registration Id: " + regId);
-		Log.i(getClass().getSimpleName(), "Sending registration ID to server");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Registration Id: " + regId);
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Sending registration ID to server");
 		HttpClient client = new DefaultHttpClient();
 		HttpPost post = new HttpPost(Util.URLTOUPLOAD); 
 		try {
@@ -51,7 +52,7 @@ public class RegistrationService extends IntentService {
 			nameValuePairs.add(new BasicNameValuePair("reg_id", regId));
 			post.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 			String response = client.execute(post, responseHandler);
-			Log.i(getClass().getSimpleName(), response);
+			Log.i("PhoneLab-" + getClass().getSimpleName(), response);
 			
 			JSONObject responseJ = new JSONObject(response);
 			SharedPreferences settings = getApplicationContext().getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
@@ -63,9 +64,9 @@ public class RegistrationService extends IntentService {
 			}
 			//now commit changes to shared preferences
 			if (editor.commit()) {
-				Log.i(getClass().getSimpleName(), "Shared Preferences Settings updated successfully");
+				Log.i("PhoneLab-" + getClass().getSimpleName(), "Shared Preferences Settings updated successfully");
 			} else {
-				Log.w(getClass().getSimpleName(), "Shared Preferences Settings couldn't be updated");
+				Log.w("PhoneLab-" + getClass().getSimpleName(), "Shared Preferences Settings couldn't be updated");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -73,6 +74,8 @@ public class RegistrationService extends IntentService {
 			e.printStackTrace();
 		}
 		
-		Log.i(getClass().getSimpleName(), "C2DM Registration Service is done!");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "C2DM Registration Service is done!");
+		
+		Locks.releaseWakeLock();
 	}
 }

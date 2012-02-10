@@ -14,7 +14,7 @@ public class PowerOnReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		Log.i(getClass().getSimpleName(), "Power is plugged in!");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Power is plugged in!");
 		
 		Intent periodicServiceIntent = new Intent(context, PeriodicCheckService.class);
 		context.startService(periodicServiceIntent);

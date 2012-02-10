@@ -3,6 +3,10 @@
  */
 package edu.buffalo.cse.phonelab.statusmonitor;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
+import edu.buffalo.cse.phonelab.utilities.Locks;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -13,6 +17,9 @@ import android.util.Log;
 
 public class StatusMonitorBattery extends Service {
 
+	Timer timer;
+	BroadcastReceiver myBatteryReceiver;
+	
 	@Override
 	public IBinder onBind(Intent intent) {
 		return null;
@@ -20,19 +27,33 @@ public class StatusMonitorBattery extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		BroadcastReceiver myBatteryReceiver = new BroadcastReceiver(){
+		Locks.acquireWakeLock(this);
+		
+		timer = new Timer();
+		timer.schedule(new TimerTask() {
+			public void run() {
+				StatusMonitorBattery.this.unregisterReceiver(myBatteryReceiver);
+				Log.i("PhoneLab-" + getClass().getSimpleName(), "Couldn't learn location");
+				Locks.releaseWakeLock();
+				StatusMonitorBattery.this.stopSelf();
+			}
+		}, 60000*1);
+		
+		myBatteryReceiver = new BroadcastReceiver(){
 			@Override
 			public void onReceive(Context arg0, Intent arg1) {
 				try {
+					timer.cancel();
 					StatusMonitorBattery.this.unregisterReceiver(this);
 					
 					int bLevel = arg1.getIntExtra("level", 0);
 					String batteryLevel = String.valueOf(bLevel);
-					Log.i(getClass().getSimpleName(), "Battery level: " + batteryLevel);
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Battery level: " + batteryLevel);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 
+				Locks.releaseWakeLock();
 				StatusMonitorBattery.this.stopSelf();
 			}
 		};

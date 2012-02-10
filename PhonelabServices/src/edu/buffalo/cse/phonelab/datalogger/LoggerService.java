@@ -42,7 +42,7 @@ public class LoggerService extends Service {
 	
 	public void onCreate() {
 		super.onCreate();
-		Log.i(getClass().getSimpleName(), "Start Service");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Start Service");
 		settings = getApplicationContext().getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
 		editor = settings.edit();
 		
@@ -54,7 +54,7 @@ public class LoggerService extends Service {
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
-				Log.i(getClass().getSimpleName(), "Service Running");
+				Log.i("PhoneLab-" + getClass().getSimpleName(), "Service Running");
 				// Check for LogCat Process
 				checkLogCatProcess();
 				
@@ -68,13 +68,13 @@ public class LoggerService extends Service {
 	private void checkLogCatProcess() {
 		List<Integer> pids = getPID("logcat");
 		int pidFromDb = settings.getInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, -1);
-		Log.i(getClass().getSimpleName(), "Logcat pid from database " + pidFromDb);
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Logcat pid from database " + pidFromDb);
 		boolean foundLogCat = false;
 		if (pids.size() > 0) {
 			for(int pid:pids) {
 				// If logcat is found
 				if(pidFromDb == pid) {
-					Log.i(getClass().getSimpleName(), "Logcat process found " + pid);
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Logcat process found " + pid);
 					// Process Found
 					if (logFileThreshold()) {
 						transferLogFiles();
@@ -82,7 +82,7 @@ public class LoggerService extends Service {
 					foundLogCat = true;
 					break;
 				} else {
-					Log.i(getClass().getSimpleName(), "Killing bogus process " + pid);
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Killing bogus process " + pid);
 					// Kill other bogus processes
 					android.os.Process.killProcess(pid);
 					// Start a new LogCat process
@@ -101,7 +101,7 @@ public class LoggerService extends Service {
 	private boolean logFileThreshold() {
 		File f = new File(LOG_DIR + "log.out");
 		boolean threshold = f.length() < Util.THRESHOLD * 1024;
-		Log.i(getClass().getSimpleName(), "Checking Threshold ... " + threshold);
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Checking Threshold ... " + threshold);
 		return threshold;
 	}
 		
@@ -119,10 +119,10 @@ public class LoggerService extends Service {
 	 * @return boolean
 	 */
 	private void transferLogFiles() {
-		Log.i(getClass().getSimpleName(), "Starting to Merge files");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Starting to Merge files");
 		File[] allFiles = new File(LOG_DIR).listFiles();
 		String mergedFileSrc = LOG_DIR + "merged.txt";
-		Log.i(getClass().getSimpleName(), "Files found .. " + allFiles.length);
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Files found .. " + allFiles.length);
 		String line = "";
 		AsyncHttpClient client = new AsyncHttpClient();
 		RequestParams params = new RequestParams();
@@ -136,7 +136,7 @@ public class LoggerService extends Service {
 				
 				// Merge files together & save as merged.txt
 				if (fileName != "log.out" && fileName.startsWith("log.out.")) {
-					Log.i(getClass().getSimpleName(), "File " + i + " " + allFiles[i].getName());
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "File " + i + " " + allFiles[i].getName());
 					// Merge files
 					try {
 						BufferedReader ip = new BufferedReader(new FileReader(allFiles[i]));
@@ -151,13 +151,13 @@ public class LoggerService extends Service {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-					Log.i(getClass().getSimpleName(), "Removing File " + i + " " + allFiles[i].delete());
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Removing File " + i + " " + allFiles[i].delete());
 				}
 			}
 			
 			// Now lets send Merged File
 			final File f = new File(mergedFileSrc);
-			Log.i(getClass().getSimpleName(), "Merged File " + f.length());
+			Log.i("PhoneLab-" + getClass().getSimpleName(), "Merged File " + f.length());
 			// If File is new i.e created after last uploaded time
 			// Set last successful upload time			
 			try {
@@ -169,8 +169,8 @@ public class LoggerService extends Service {
 			    	Date now = new Date();
 					editor.putLong(Util.SHARED_PREFERENCES_DATA_LOGGER_LAST_UPDATE_TIME, (System.currentTimeMillis()/1000 - ((now.getMinutes() * 60  + now.getSeconds()))));
 					editor.commit();
-					Log.i(getClass().getSimpleName(), "Removing Merged File " + f.delete());
-					Log.i(getClass().getSimpleName(), "Response " + response);
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Removing Merged File " + f.delete());
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Response " + response);
 			    }
 			});
 		} else {
@@ -219,7 +219,7 @@ public class LoggerService extends Service {
 			
 			for(int i = 0; i<splitString.length; i++) {
 				if (splitString[i].startsWith("app_")) {
-					Log.i(getClass().getSimpleName(), splitString[i].toString());
+					Log.i("PhoneLab-" + getClass().getSimpleName(), splitString[i].toString());
 					String[] splitPs = splitString[i].split("\\s+");
 					pids.add(Integer.parseInt(splitPs[1]));
 				}
@@ -236,14 +236,14 @@ public class LoggerService extends Service {
 		//Process process;
 		int pid = 0;
 		try {
-			Log.i(getClass().getSimpleName(), "Logcat process not found, starting process");
+			Log.i("PhoneLab-" + getClass().getSimpleName(), "Logcat process not found, starting process");
 			// create log dir if it doesn`t exist
 			createLogDir();
 			Runtime.getRuntime().exec("logcat -v long -f " + LOG_DIR + "log.out -r " + Util.LOG_FILE_SIZE + " -n " + Util.AUX_LOG_FILES + " &");
 			pid = getPID("logcat").iterator().next();
 	        editor.putInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, pid);
 	        editor.commit();
-	        Log.i(getClass().getSimpleName(), "PID to db" + pid);
+	        Log.i("PhoneLab-" + getClass().getSimpleName(), "PID to db" + pid);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
@@ -257,8 +257,8 @@ public class LoggerService extends Service {
 			timer.cancel();
 		}
 		
-		Log.i(getClass().getSimpleName(), "Kill Service");
-		Log.i(getClass().getSimpleName(), "Timer stopped.");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Kill Service");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Timer stopped.");
 	}
 	
 	@Override

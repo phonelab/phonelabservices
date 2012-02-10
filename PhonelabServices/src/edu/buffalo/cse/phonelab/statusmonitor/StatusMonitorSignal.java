@@ -3,6 +3,10 @@
  */
 package edu.buffalo.cse.phonelab.statusmonitor;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
+import edu.buffalo.cse.phonelab.utilities.Locks;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -14,7 +18,9 @@ import android.util.Log;
 
 public class StatusMonitorSignal extends Service {
 
+	Timer timer;
 	TelephonyManager mTelManager;
+	PhoneStateListener mSignalListener;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -23,17 +29,30 @@ public class StatusMonitorSignal extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.i(getClass().getSimpleName(), "Learning Signal Strength");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Learning Signal Strength");
+
+		Locks.acquireWakeLock(this);
+
+		timer = new Timer();
+		timer.schedule(new TimerTask() {
+			public void run() {
+				mTelManager.listen(mSignalListener, PhoneStateListener.LISTEN_NONE);//unregistering
+				Log.i("PhoneLab-" + getClass().getSimpleName(), "Couldn't learn signal strength");
+				Locks.releaseWakeLock();
+				StatusMonitorSignal.this.stopSelf();
+			}
+		}, 60000*1);
 
 		/*Get signal strength*/
-		PhoneStateListener mSignalListener = new PhoneStateListener() {
+		mSignalListener = new PhoneStateListener() {
 			int mStrength;
 			@Override
 			public void onSignalStrengthsChanged(SignalStrength signalStrength) {
 				super.onSignalStrengthsChanged(signalStrength);
 				try {
+					timer.cancel();
 					mTelManager.listen(this, PhoneStateListener.LISTEN_NONE);//unregistering
-					
+
 					if (signalStrength.isGsm())
 						mStrength = signalStrength.getGsmSignalStrength();
 					else{
@@ -48,12 +67,13 @@ public class StatusMonitorSignal extends Service {
 							mStrength = Math.round((strength + 113f) / 2f);
 						}
 
-						Log.i(getClass().getSimpleName(), "Signal Strength: " + strength + " asu: " + mStrength);
+						Log.i("PhoneLab-" + getClass().getSimpleName(), "Signal Strength: " + strength + " asu: " + mStrength);
 					}  
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				             
+
+				Locks.releaseWakeLock();
 				StatusMonitorSignal.this.stopSelf();
 			}
 		};

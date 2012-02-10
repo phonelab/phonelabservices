@@ -50,7 +50,7 @@ public class UploadFile {
 			try {
 				connectURL = new URL(urlString);
 			} catch(Exception ex) {
-				Log.i(Tag,"MALFORMATED URL");
+				Log.i("PhoneLab-" + Tag,"MALFORMATED URL");
 			}
 			this.params = params+"=";
 			this.fileName = fileName;
@@ -66,7 +66,7 @@ public class UploadFile {
 			String twoHyphens = "--";
 			String boundary = "*****";
 			try {
-				Log.i(Tag,"Uploading now...");
+				Log.i("PhoneLab-" + Tag,"Uploading now...");
 				HttpURLConnection conn = (HttpURLConnection) connectURL.openConnection();// Open a HTTP connection to the URL
 				conn.setDoInput(true);// Allow Inputs
 				conn.setDoOutput(true);// Allow Outputs
@@ -80,7 +80,7 @@ public class UploadFile {
 				dos.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\";filename=\"" + fileName +"\"" + lineEnd);
 				dos.writeBytes(lineEnd);
 
-				Log.i(Tag,"Headers are written");
+				Log.i("PhoneLab-" + Tag,"Headers are written");
 
 				// create a buffer of maximum size
 				int bytesAvailable = fileInputStream.available();
@@ -102,7 +102,7 @@ public class UploadFile {
 				dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
 
 				// close streams
-				Log.i(Tag,"File is written");
+				Log.i("PhoneLab-" + Tag,"File is written");
 				fileInputStream.close();
 				dos.flush();
 
@@ -115,12 +115,12 @@ public class UploadFile {
 				}
 
 				String s=b.toString(); 
-				Log.i("Response",s);
+				Log.i("PhoneLab-" + "Response",s);
 				dos.close();
 			} catch (MalformedURLException ex) {
-				Log.i(Tag, "error: " + ex.getMessage(), ex);
+				Log.i("PhoneLab-" + Tag, "error: " + ex.getMessage(), ex);
 			} catch (IOException ioe) {
-				Log.i(Tag, "error: " + ioe.getMessage(), ioe);
+				Log.i("PhoneLab-" + Tag, "error: " + ioe.getMessage(), ioe);
 			}
 		}
 	}

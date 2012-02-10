@@ -25,14 +25,14 @@ public class PhoneLabMainView extends Activity {
     }
 	
 	public void installedApps (View view) {
-		Log.i(getClass().getSimpleName(), "See All applications");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "See All applications");
 		
 		Intent intent = new Intent(this, ApplicationList.class);
 		startActivity(intent);
 	}
 	
 	public void showInfo (View view) {
-		Log.i(getClass().getSimpleName(), "Info will be shown");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Info will be shown");
 		Intent myIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.phone-lab.org"));
 		startActivity(myIntent);
 	}
@@ -42,7 +42,7 @@ public class PhoneLabMainView extends Activity {
 	 * If there exist an already set up alarm, it will do nothing 
 	 */
 	private void reschedulePeriodicMonitoring() {
-		Log.i(getClass().getSimpleName(), "Rescheduling periodic checking...");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Rescheduling periodic checking...");
 		AlarmManager mgr = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
 		Intent newIntent = new Intent(getApplicationContext(), PeriodicCheckReceiver.class);
 		PendingIntent pending = PendingIntent.getBroadcast(getApplicationContext(), 0, newIntent, PendingIntent.FLAG_CANCEL_CURRENT);

@@ -19,13 +19,13 @@ public class WiFiReceiver extends BroadcastReceiver {
 		if(intent.getAction().equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
 			NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
 			if(networkInfo.isConnected()) {
-				Log.i(getClass().getSimpleName(), "WiFi is connected!");
+				Log.i("PhoneLab-" + getClass().getSimpleName(), "WiFi is connected!");
 
 			}
 		} else if(intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
 			NetworkInfo networkInfo = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
 			if(networkInfo.getType() == ConnectivityManager.TYPE_WIFI && ! networkInfo.isConnected()) {
-				Log.i(getClass().getSimpleName(), "WiFi is disconnected!");
+				Log.i("PhoneLab-" + getClass().getSimpleName(), "WiFi is disconnected!");
 				
 			}
 		}

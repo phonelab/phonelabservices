@@ -52,7 +52,7 @@ public class ApplicationList extends ListActivity {
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		String item = (String) getListAdapter().getItem(position);
-		Log.i(getClass().getSimpleName(), "Item: " + item + "Position: " + position + " id: " + id);
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Item: " + item + "Position: " + position + " id: " + id);
 		if (applications != null) {
 			PhoneLabApplication app = applications.get(position);
 			if (app.getPackageName() != null) {
@@ -68,7 +68,7 @@ public class ApplicationList extends ListActivity {
 	 * @author rishi baldawa
 	 */
 	private void startingapplication(PhoneLabApplication app) {
-		Log.i(getClass().getSimpleName(), "Starting " + app.getName() + " now...");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Starting " + app.getName() + " now...");
 
 		Intent startAppIntent = new Intent(Intent.ACTION_MAIN);
 		PackageManager manager = getPackageManager();
@@ -78,7 +78,7 @@ public class ApplicationList extends ListActivity {
 			startActivity(startAppIntent);
 		} catch( Exception e ) {
 			e.printStackTrace();
-			Log.w(getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
+			Log.w("PhoneLab-" + getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
 		}
 	}
 }

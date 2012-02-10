@@ -17,6 +17,7 @@ import android.os.SystemClock;
 import android.util.Log;
 import edu.buffalo.cse.phonelab.c2dm.RegistrationService;
 import edu.buffalo.cse.phonelab.datalogger.LoggerService;
+import edu.buffalo.cse.phonelab.utilities.Locks;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
 
@@ -31,7 +32,7 @@ public class PeriodicCheckService extends IntentService {
 		//Check for reg id is syced or not
 		SharedPreferences settings = getApplicationContext().getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
 		if (!settings.getBoolean(Util.SHARED_PREFERENCES_SYNC_KEY, false)) {
-			Log.w(getClass().getSimpleName(), "User info is not synched yet");
+			Log.w("PhoneLab-" + getClass().getSimpleName(), "User info is not synched yet");
 			String regId = settings.getString(Util.SHARED_PREFERENCES_REG_ID_KEY, null);
 			if (regId == null) {
 				Intent registrationIntent = new Intent("com.google.android.c2dm.intent.REGISTER");
@@ -39,26 +40,30 @@ public class PeriodicCheckService extends IntentService {
 				registrationIntent.putExtra("sender", Util.C2DM_EMAIL);
 				startService(registrationIntent);
 			} else {
+				Locks.acquireWakeLock(this);
+				
 				Intent regService = new Intent(this, RegistrationService.class);
 				regService.putExtra("device_id", Util.getDeviceId(this));
 				regService.putExtra("reg_id", regId);
 				startService(regService);
 			}
 		} else {
-			Log.i(getClass().getSimpleName(), "User info is synched");
+			Log.i("PhoneLab-" + getClass().getSimpleName(), "User info is synched");
 		}
 
 		//Check Data If Data Logger is running
 		if (!isMyServiceRunning("edu.buffalo.cse.phonelab.datalogger.LoggerService")) {
-			Log.w(getClass().getSimpleName(), "Logger Service is not running starting now...");
+			Log.w("PhoneLab-" + getClass().getSimpleName(), "Logger Service is not running starting now...");
 			Intent service = new Intent(this, LoggerService.class);
 			this.startService(service);
 		} else {
-			Log.i(getClass().getSimpleName(), "Logger Service is running");
+			Log.i("PhoneLab-" + getClass().getSimpleName(), "Logger Service is running");
 		}
 
 		//Reschedule
 		reschedulePeriodicChecking();
+		
+		Locks.releaseWakeLock();
 	}
 
 	/**
@@ -82,7 +87,7 @@ public class PeriodicCheckService extends IntentService {
 	 * If there exist an already set up alarm, it will first cancel it 
 	 */
 	private void reschedulePeriodicChecking() {
-		Log.i(getClass().getSimpleName(), "Rescheduling periodic checking...");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Rescheduling periodic checking...");
 		AlarmManager mgr = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
 		Intent newIntent = new Intent(getApplicationContext(), PeriodicCheckReceiver.class);
 		PendingIntent pending = PendingIntent.getBroadcast(getApplicationContext(), 0, newIntent, PendingIntent.FLAG_CANCEL_CURRENT);

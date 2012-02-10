@@ -58,7 +58,7 @@ public class UploadDeviceStatus {
 				map.clear();
 				httpost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 				response = httpclient.execute(httpost,responseHandler);
-				Log.i(getClass().getSimpleName(), "Response: \n" + response);
+				Log.i("PhoneLab-" + getClass().getSimpleName(), "Response: \n" + response);
 
 				JSONObject responseJ = new JSONObject(response);
 				if (responseJ.getString("error").equals("")) {//success
