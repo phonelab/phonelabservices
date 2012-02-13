@@ -3,6 +3,9 @@
  */
 package edu.buffalo.cse.phonelab.manifest;
 
+/**
+ * This class contains status monitor parameters.   
+ */
 public class PhoneLabParameter {
 
 	private String name;
@@ -34,11 +37,12 @@ public class PhoneLabParameter {
 	public void setSetBy(String setBy) {
 		this.setBy = setBy;
 	}
+	
 	public String toString() {
-		return "name: " + name + "\n" +
-				"value: " + value + "\n" +
-				"units: " + units + "\n" + 
-				"setBy: " + setBy + "\n";
+		return 	"name: " + getName() + "\n" +
+				"value: " + getValue() + "\n" +
+				"units: " + getUnits() + "\n" + 
+				"setBy: " + getSetBy() + "\n";
 	}
 	
 }

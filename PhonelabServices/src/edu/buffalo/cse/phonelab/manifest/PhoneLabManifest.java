@@ -36,16 +36,28 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import android.content.Context;
+import android.util.Log;
 
+/**
+ * This class handles the manifest operations.
+ */
 public class PhoneLabManifest {
+	//TODO logs ? 
+	//TODO Async Thread for this ?
 	private Document document = null;
 	private XPath xpath = null;
-	private String xmlFullPath;
+	private String xmlFullPath = null;
 	private Context context = null;
 
 	public PhoneLabManifest (String xmlFullPath, Context context) {
 		this.xmlFullPath = xmlFullPath;
 		this.context = context;
+		//TODO check if null or not
+	}
+	
+	@SuppressWarnings("unused") 
+	private PhoneLabManifest(){
+		//DO Nothing. Meant to be used private constructor to prevent null assignment.
 	}
 
 	/**
@@ -60,10 +72,13 @@ public class PhoneLabManifest {
 				return true;
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		} catch (SAXException e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		} catch (IOException e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 
 		return false;
@@ -380,6 +395,7 @@ public class PhoneLabManifest {
 			}
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 	}
 
@@ -412,6 +428,7 @@ public class PhoneLabManifest {
 				return document;
 			} catch (Exception e) {
 				e.printStackTrace();
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 
 			return null;
@@ -438,8 +455,10 @@ public class PhoneLabManifest {
 				fos.close();
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			} catch (IOException e) {
 				e.printStackTrace();
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 		}
 	}
