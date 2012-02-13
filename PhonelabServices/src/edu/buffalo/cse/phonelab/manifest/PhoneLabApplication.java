@@ -4,7 +4,13 @@
 
 package edu.buffalo.cse.phonelab.manifest;
 
+/**
+ * store all the details of the application.   
+ */
 public class PhoneLabApplication {
+	/*
+	 * Getters and setters are public TODO should they be ?
+	 */
 	private String intentName;
 	private String packageName;
 	private String name;
@@ -71,8 +77,6 @@ public class PhoneLabApplication {
 	public void setAction(String action) {
 		this.action = action;
 	}
-	
-	
 	public String getStartTime() {
 		return startTime;
 	}
@@ -86,15 +90,14 @@ public class PhoneLabApplication {
 		this.endTime = endTime;
 	}
 	public String toString() {
-		return "intent_name: " + intentName + "\n" +
-				"package_name: " + packageName + "\n" +
-				"name: " + name +  "\n" +
-				"description: " + description + "\n" +
-				"type: " + type + "\n" +
-				"participantinitiated: " + participantInitiated + "\n" +
-				"download: " + download + "\n" +
-				"version: " + version + "\n" + 
-				"action: " + action + "\n";
-				
+		return 	"intent_name: " + getIntentName() + "\n" +
+				"package_name: " + getPackageName() + "\n" +
+				"name: " + getName() +  "\n" +
+				"description: " + getDescription() + "\n" +
+				"type: " + getType() + "\n" +
+				"participantinitiated: " + isParticipantInitiated() + "\n" +
+				"download: " + getDownload() + "\n" +
+				"version: " + getVersion() + "\n" + 
+				"action: " + getAction() + "\n";
 	}
 }
