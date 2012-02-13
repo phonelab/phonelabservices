@@ -30,6 +30,8 @@ import com.loopj.android.http.RequestParams;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
 /**
+ * Maintains the log services. 
+ * 
  * @author mike
  *
  */
@@ -40,6 +42,9 @@ public class LoggerService extends Service {
 	private SharedPreferences settings;
 	private Editor editor;
 	
+	/**
+	 * start the logging data
+	 */
 	public void onCreate() {
 		super.onCreate();
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Start Service");
@@ -48,7 +53,6 @@ public class LoggerService extends Service {
 		
 		start();
 	}
-	
 	
 	public void start() {
 		timer.scheduleAtFixedRate(new TimerTask() {
@@ -96,8 +100,14 @@ public class LoggerService extends Service {
 		} else {
 			startLogcat();
 		}
+		//TODO No exceptions ?
 	}
 	
+	/**
+	 * Checks if the length of the file is less than the set threshold. 
+	 * 
+	 * @return true if log file length is less than the threshold, false otherwise
+	 */
 	private boolean logFileThreshold() {
 		File f = new File(LOG_DIR + "log.out");
 		boolean threshold = f.length() < Util.THRESHOLD * 1024;
@@ -151,6 +161,7 @@ public class LoggerService extends Service {
 						ip.close();
 					} catch (Exception e) {
 						e.printStackTrace();
+						Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 					}
 					Log.i("PhoneLab-" + getClass().getSimpleName(), "Removing File " + i + " " + allFiles[i].delete());
 				}
@@ -180,6 +191,8 @@ public class LoggerService extends Service {
 			});
 		} else {
 			// No File
+			Log.i("PhoneLab-" + getClass().getSimpleName(), "No Log file exist");
+
 		}
 	}
 	
@@ -256,6 +269,9 @@ public class LoggerService extends Service {
 		}
 	}
 	
+	/**
+	 * Stop Logging. Service Killed. Timer Stopped.
+	 */
 	public void onDestroy() {
 		super.onDestroy();
 		if (timer != null) {
@@ -268,7 +284,7 @@ public class LoggerService extends Service {
 	
 	@Override
 	public IBinder onBind(Intent arg0) {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub. Any reason this ?? 
 		return mBinder;
 	}
 	
