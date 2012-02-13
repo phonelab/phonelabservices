@@ -79,6 +79,8 @@ public class StatusMonitor extends Service {
 		
 		Locks.releaseWakeLock();
 		
+		this.stopSelf();
+		
 		return START_STICKY;
 	}
 

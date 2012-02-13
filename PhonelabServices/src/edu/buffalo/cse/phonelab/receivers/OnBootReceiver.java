@@ -3,18 +3,24 @@
  */
 package edu.buffalo.cse.phonelab.receivers;
 
-import edu.buffalo.cse.phonelab.phonelabservices.PeriodicCheckService;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.SystemClock;
 import android.util.Log;
+import edu.buffalo.cse.phonelab.phonelabservices.PeriodicCheckReceiver;
 
 public class OnBootReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Device is booted!");
 		
-		Intent periodicServiceIntent = new Intent(context, PeriodicCheckService.class);
-		context.startService(periodicServiceIntent);
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Rescheduling periodic checking...");
+		AlarmManager mgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+		Intent newIntent = new Intent(context, PeriodicCheckReceiver.class);
+		PendingIntent pending = PendingIntent.getBroadcast(context, 0, newIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+		mgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 10000, pending);
 	}
 }

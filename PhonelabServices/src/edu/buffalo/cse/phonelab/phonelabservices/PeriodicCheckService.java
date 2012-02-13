@@ -17,6 +17,7 @@ import android.os.SystemClock;
 import android.util.Log;
 import edu.buffalo.cse.phonelab.c2dm.RegistrationService;
 import edu.buffalo.cse.phonelab.datalogger.LoggerService;
+import edu.buffalo.cse.phonelab.statusmonitor.StatusMonitorReceiver;
 import edu.buffalo.cse.phonelab.utilities.Locks;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
@@ -41,7 +42,7 @@ public class PeriodicCheckService extends IntentService {
 				startService(registrationIntent);
 			} else {
 				Locks.acquireWakeLock(this);
-				
+
 				Intent regService = new Intent(this, RegistrationService.class);
 				regService.putExtra("device_id", Util.getDeviceId(this));
 				regService.putExtra("reg_id", regId);
@@ -60,9 +61,17 @@ public class PeriodicCheckService extends IntentService {
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "Logger Service is running");
 		}
 
+		//Check Status Monitoring
+		Intent newIntent = new Intent(getApplicationContext(), StatusMonitorReceiver.class);
+		PendingIntent pendingTest = PendingIntent.getBroadcast(getApplicationContext(), 0, newIntent, PendingIntent.FLAG_NO_CREATE);
+		if (pendingTest == null) {
+			AlarmManager mgr = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+			PendingIntent pending = PendingIntent.getBroadcast(getApplicationContext(), 0, newIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+			mgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), pending);
+		}
 		//Reschedule
 		reschedulePeriodicChecking();
-		
+
 		Locks.releaseWakeLock();
 	}
 
