@@ -1,13 +1,4 @@
-/**
- * 
- */
 package edu.buffalo.cse.phonelab.phonelabservices;
-
-/**
- * @author Muhammed Fatih Bulut
- *
- * mbulut@buffalo.edu
- */
 
 import android.app.Activity;
 import android.view.LayoutInflater;
@@ -16,6 +7,13 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+/**
+ * List Adapter to get more info for an app in the Application List.
+ * 
+ * @author Muhammed Fatih Bulut
+ *
+ * mbulut@buffalo.edu
+ */
 public class ApplicationListArrayAdapter extends ArrayAdapter<String> {
 	private final Activity context;
 	private final String[] names;

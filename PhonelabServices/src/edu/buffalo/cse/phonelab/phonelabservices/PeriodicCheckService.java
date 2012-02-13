@@ -20,7 +20,9 @@ import edu.buffalo.cse.phonelab.datalogger.LoggerService;
 import edu.buffalo.cse.phonelab.utilities.Locks;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
-
+/**
+ * starts periodic check service. 
+ */
 public class PeriodicCheckService extends IntentService {
 
 	public PeriodicCheckService() {
@@ -40,7 +42,7 @@ public class PeriodicCheckService extends IntentService {
 				registrationIntent.putExtra("sender", Util.C2DM_EMAIL);
 				startService(registrationIntent);
 			} else {
-				Locks.acquireWakeLock(this);
+				Locks.acquireWakeLock(this); // TODO Is this necessary ? Lock already acquired in periodic check Receiver
 				
 				Intent regService = new Intent(this, RegistrationService.class);
 				regService.putExtra("device_id", Util.getDeviceId(this));

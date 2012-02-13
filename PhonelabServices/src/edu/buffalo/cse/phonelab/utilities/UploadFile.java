@@ -32,6 +32,7 @@ public class UploadFile {
 			htfu.doStart(fis);
 		} catch (Exception e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 
 		return true;
@@ -118,9 +119,9 @@ public class UploadFile {
 				Log.i("PhoneLab-" + "Response",s);
 				dos.close();
 			} catch (MalformedURLException ex) {
-				Log.i("PhoneLab-" + Tag, "error: " + ex.getMessage(), ex);
+				Log.e("PhoneLab-" + Tag, "error: " + ex.getMessage(), ex);
 			} catch (IOException ioe) {
-				Log.i("PhoneLab-" + Tag, "error: " + ioe.getMessage(), ioe);
+				Log.e("PhoneLab-" + Tag, "error: " + ioe.getMessage(), ioe);
 			}
 		}
 	}

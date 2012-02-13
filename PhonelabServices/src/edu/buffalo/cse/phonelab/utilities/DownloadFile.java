@@ -49,7 +49,7 @@ public class DownloadFile {
 
 			return true;
 		} catch (IOException e) {
-			Log.w("PhoneLab-" + "edu.buffalo.cse.phonelab.controller", "Download Failed! Error: " + e);
+			Log.e("PhoneLab-" + "edu.buffalo.cse.phonelab.controller", "Download Failed! Error: " + e.getMessage());
 		}
 
 		return false;
