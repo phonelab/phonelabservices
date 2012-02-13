@@ -39,14 +39,31 @@ import edu.buffalo.cse.phonelab.utilities.Locks;
 import edu.buffalo.cse.phonelab.utilities.UploadFile;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
+/**
+ * @author rishi
+ * 
+ * Processes the received message and performs actions accordingly. 
+ * Actions involve :
+ * 		Merge New Manifest File
+ * 		Download / Install Apps
+ * 		Uninstall Apps (with App data)
+ * 		Update Apps
+ * 		Start Apps
+ * 		Stop Apps
+ * 		Start Status Monitor
+ */
 public class MessageService extends IntentService {
-
+	
+	/**
+	 * Class constructor
+	 */
 	public MessageService() {
 		super("MessageService");
 	}
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
+		
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "C2DM Message Service is started!");
 
 		String payload = intent.getExtras().getString("payload");
@@ -64,6 +81,7 @@ public class MessageService extends IntentService {
 								currentManifest.saveDocument();
 							} catch (TransformerException e) {
 								e.printStackTrace();
+								Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessageAndLocation());
 							}
 						} else {
 							try {
@@ -84,14 +102,17 @@ public class MessageService extends IntentService {
 									handleNewManifest(currentManifest2);
 									try {
 										currentManifest2.saveDocument();
-									} catch (TransformerException e) {
-										e.printStackTrace();
+									} catch (TransformerException te) {
+										te.printStackTrace();
+										Log.e("PhoneLab-" + getClass().getSimpleName(), te.getMessageAndLocation());
 									}
 								}
-							} catch (FileNotFoundException e1) {
-								e1.printStackTrace();
-							} catch (IOException e) {
-								e.printStackTrace();
+							} catch (FileNotFoundException fnfe) {
+								fnfe.printStackTrace();
+								Log.e("PhoneLab-" + getClass().getSimpleName(), fnfe.getMessage());
+							} catch (IOException ioe) {
+								ioe.printStackTrace();
+								Log.e("PhoneLab-" + getClass().getSimpleName(), ioe.getMessage());
 							}
 						}
 					}
@@ -104,26 +125,26 @@ public class MessageService extends IntentService {
 				registrationIntent.putExtra("app", PendingIntent.getBroadcast(this, 0, new Intent(), 0));
 				registrationIntent.putExtra("sender", Util.C2DM_EMAIL);
 				startService(registrationIntent);
-			} else if (message.equals("get_device_status")) {
+			} else if (message.equals("get_device_status")) { 	// Send device status to server
 				UploadDeviceStatus uploadDeviceStatus = new UploadDeviceStatus();
 				uploadDeviceStatus.uploadDeviceStatus(getApplicationContext(), Util.DEVICE_STATUS_UPLOAD_URL + Util.getDeviceId(getApplicationContext()));
 			} else if (message.equals("flash")) {
 
-			} else if (message.equals("upload_manifest")) { //Send updated manifest to the server
+			} else if (message.equals("upload_manifest")) { 	// Send updated manifest to the server
 				UploadFile uploadManifest = new UploadFile();
 				uploadManifest.upload(getApplicationContext(), Util.MANIFEST_UPLOAD_URL, Util.CURRENT_MANIFEST_DIR);
 			} else if (message.equals("uninstall_all_apps")) {
 				uninstallAllApps();
-			} else if (message.equals("remove_manifest")) {
+			} else if (message.equals("remove_manifest")) { 	// delete all apps and the manifest
 				uninstallAllApps();
 				if (deleteFile(Util.CURRENT_MANIFEST_DIR)) {
 					Log.i("PhoneLab-" + getClass().getSimpleName(), "Manifest successfully deleted");
 				} else {
-					Log.w("PhoneLab-" + getClass().getSimpleName(), "Manifest couldn't be deleted");
+					Log.e("PhoneLab-" + getClass().getSimpleName(), "Manifest couldn't be deleted");
 				}
-			} else if (message.equals("start_status_monitoring")) {
+			} else if (message.equals("start_status_monitoring")) { // start SM
 				startStatusMonitor();
-			} else if (message.equals("stop_status_monitoring")) {
+			} else if (message.equals("stop_status_monitoring")) { 	// stop SM
 				try {
 					Intent i1 = new Intent(this, StatusMonitorReceiver.class);
 					PendingIntent pi1 = PendingIntent.getBroadcast(this, 0, i1, PendingIntent.FLAG_NO_CREATE);
@@ -135,53 +156,30 @@ public class MessageService extends IntentService {
 					} else {
 						Log.w("PhoneLab-" + getClass().getSimpleName(), "No Status Monitoring Alarm is currently set");
 					}
-				} catch (Exception e) {
+				} catch (Exception e) { //TODO why so general
 					e.printStackTrace();
+					Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 				}
-			} else if (message.equals("start_periodic_checking")) {
+			} else if (message.equals("start_periodic_checking")) { // start checking
 				AlarmManager mgr = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
 				Intent newIntent = new Intent(getApplicationContext(), PeriodicCheckReceiver.class);
 				PendingIntent pending = PendingIntent.getBroadcast(getApplicationContext(), 0, newIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 				mgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), pending);
+				
+				//TODO to stop perodic checking ?
 			} 
-		} catch (JSONException e) {
-			e.printStackTrace();
-			Log.w("PhoneLab-" + getClass().getSimpleName(), "C2DM Message cannot be parsed to JSON object!");
+		} catch (JSONException jsone) {
+			jsone.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), "C2DM Message cannot be parsed to JSON object!");
 		} catch (Exception e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+
 		}
 
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "C2DM Message Service is done!");
 		
 		Locks.releaseWakeLock();
-	}
-
-	/**
-	 * This method uninstall all the applications from both manifest and device
-	 */
-	private void uninstallAllApps() {
-		PhoneLabManifest manifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR, getApplicationContext());
-		if (manifest.getManifest()) {
-			try {
-				ArrayList<PhoneLabApplication> applications = manifest.getAllApplications();
-				for (PhoneLabApplication app:applications) {
-					removeapplication(app);
-					try {
-						manifest.removeApplication(app.getPackageName());
-					} catch (XPathExpressionException e) {
-						e.printStackTrace();
-					}
-				}
-			} catch (XPathExpressionException e) {
-				e.printStackTrace();
-			}
-
-			try {
-				manifest.saveDocument();
-			} catch (TransformerException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 
 	/**
@@ -209,6 +207,7 @@ public class MessageService extends IntentService {
 			} 
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 		//Handle Status Monitor
 		try {
@@ -218,6 +217,7 @@ public class MessageService extends IntentService {
 			}
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 	}
 
@@ -244,7 +244,7 @@ public class MessageService extends IntentService {
 							currentManifest.removeApplication(app.getPackageName());
 						}
 					} 
-				} else {//No such app exists
+				} else {//No such app exists, must be install
 					if (app.getAction().equals("install")) {
 						if (installApplication(app)) {
 							currentManifest.addApplication(app);
@@ -254,6 +254,7 @@ public class MessageService extends IntentService {
 			} 
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 		//Handle Status Monitor
 		try {
@@ -274,12 +275,14 @@ public class MessageService extends IntentService {
 					currentManifest.saveDocument();
 				} catch (TransformerException e) {
 					e.printStackTrace();
+					Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 				}
 
 				startStatusMonitor();
 			}
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 	}
 
@@ -317,7 +320,7 @@ public class MessageService extends IntentService {
 				//failure to install APK
 				while((line = buf_e.readLine()) != null){
 					if(line.split(" ")[0].compareTo("Failure") == 0){
-						Log.i("PhoneLab-" + getClass().getSimpleName(), app.getName() + " couldn't be installed");
+						Log.wtf("PhoneLab-" + getClass().getSimpleName(), app.getName() + " couldn't be installed");
 					}
 				}
 
@@ -325,8 +328,10 @@ public class MessageService extends IntentService {
 				process.waitFor();
 			} catch (IOException e) {
 				e.printStackTrace();
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 
 			//Remove .apk from where it is downloaded
@@ -336,17 +341,58 @@ public class MessageService extends IntentService {
 		return false;
 	}
 
+	/**
+	 * This method will un-install all the applications from both manifest and device
+	 */
+	private void uninstallAllApps() {
+		PhoneLabManifest manifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR, getApplicationContext());
+		if (manifest.getManifest()) {
+			try {
+				ArrayList<PhoneLabApplication> applications = manifest.getAllApplications();
+				for (PhoneLabApplication app:applications) {
+					removeapplication(app);
+					try {
+						manifest.removeApplication(app.getPackageName());
+					} catch (XPathExpressionException e) {
+						e.printStackTrace();
+						Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+					}
+				}
+			} catch (XPathExpressionException e) {
+				e.printStackTrace();
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+			}
+
+			try {
+				manifest.saveDocument();
+			} catch (TransformerException e) {
+				e.printStackTrace();
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+			}
+		}
+	}
+	
+	/**
+	 * Removes a file whose path is given.
+	 * @param path to the file to be removed
+	 * TODO must return successful deletion of file
+	 */
 	private void removeFile (String path) {
 		File file = new File(path);
+		
 		if (file.delete()) {
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "File at " + path + " deleted successfully");
 		} else {
-			Log.w("PhoneLab-" + getClass().getSimpleName(), "File at " + path + " couldn't be deleted");
+			Log.e("PhoneLab-" + getClass().getSimpleName(), "File at " + path + " couldn't be deleted");
+			if(file.isDirectory()){//Directories need to be empty
+				Log.e("PhoneLab-" + getClass().getSimpleName(),  path + " leads to a directory. Needs to be empty to be deleted.");
+			}
+			//TODO check for su ? 
 		}
 	}
 
 	/**
-	 * This method will update the current installed application
+	 * This method will update the current installed application. If the application doesn't exist, it will just install the new app. 
 	 * @param app PhoneLabApplication to update
 	 * @return true if successful, otherwise false
 	 */
@@ -379,15 +425,17 @@ public class MessageService extends IntentService {
 				//failure to install APK
 				while((line = buf_e.readLine()) != null){
 					if(line.split(" ")[0].compareTo("Failure") == 0){
-						Log.i("PhoneLab-" + getClass().getSimpleName(), app.getName() + " couldn't be updated");
+						Log.e("PhoneLab-" + getClass().getSimpleName(), app.getName() + " couldn't be updated");
 					}
 				}
 				buf_e.close();
 				process.waitFor();
 			} catch (IOException e) {
 				e.printStackTrace();
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 
 			//Remove .apk from where it is downloaded
@@ -417,7 +465,7 @@ public class MessageService extends IntentService {
 
 				} else {
 					//failure to uninstall APK
-					Log.i("PhoneLab-" + getClass().getSimpleName(), app.getName() + " couldn't be uninstalled");
+					Log.e("PhoneLab-" + getClass().getSimpleName(), app.getName() + " couldn't be uninstalled");
 				}
 			}
 			buf_i.close();
@@ -425,8 +473,10 @@ public class MessageService extends IntentService {
 			process.waitFor();
 		} catch (IOException e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		} catch (InterruptedException e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 
 		return false;
@@ -462,7 +512,7 @@ public class MessageService extends IntentService {
 				startActivity(startAppIntent);
 			} catch( Exception e ) {
 				e.printStackTrace();
-				Log.w("PhoneLab-" + getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
+				Log.e("PhoneLab-" + getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
 			}
 		} else if (app.getType().equals("background")) {
 			Intent intent = new Intent(app.getIntentName());
@@ -489,7 +539,7 @@ public class MessageService extends IntentService {
 			stopService(stopAppIntent);
 		} catch( Exception e ) {
 			e.printStackTrace();
-			Log.w("PhoneLab-" + getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
+			Log.e("PhoneLab-" + getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
 		}
 
 		return;
