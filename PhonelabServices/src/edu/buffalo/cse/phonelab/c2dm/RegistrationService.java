@@ -57,7 +57,7 @@ public class RegistrationService extends IntentService {
 			JSONObject responseJ = new JSONObject(response);
 			SharedPreferences settings = getApplicationContext().getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
 			Editor editor = settings.edit();
-			if(responseJ.getString("error").equals("")) {
+			if(responseJ.getString("error").equals("")) {//TODO shouldn't an error be logged?
 				editor.putBoolean(Util.SHARED_PREFERENCES_SYNC_KEY, true);
 			} else {
 				editor.putBoolean(Util.SHARED_PREFERENCES_SYNC_KEY, false);
@@ -66,12 +66,14 @@ public class RegistrationService extends IntentService {
 			if (editor.commit()) {
 				Log.i("PhoneLab-" + getClass().getSimpleName(), "Shared Preferences Settings updated successfully");
 			} else {
-				Log.w("PhoneLab-" + getClass().getSimpleName(), "Shared Preferences Settings couldn't be updated");
+				Log.e("PhoneLab-" + getClass().getSimpleName(), "Shared Preferences Settings couldn't be updated");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		} catch (JSONException e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 		
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "C2DM Registration Service is done!");

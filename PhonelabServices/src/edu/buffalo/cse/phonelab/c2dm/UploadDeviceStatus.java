@@ -40,7 +40,6 @@ public class UploadDeviceStatus {
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
 			String response = "";
 			ResponseHandler<String> responseHandler = new BasicResponseHandler();
-			try {
 				SharedPreferences settings = context.getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
 				nameValuePairs.add(new BasicNameValuePair("device_id", Util.getDeviceId(context)));
 				String regId = settings.getString(Util.SHARED_PREFERENCES_REG_ID_KEY, null);
@@ -48,33 +47,36 @@ public class UploadDeviceStatus {
 					nameValuePairs.add(new BasicNameValuePair("reg_id", regId));
 				}
 				HashMap<String, JSONArray> map = new HashMap<String, JSONArray>();
+				
 				map.put("apps", getApss(context));
 				JSONObject jsonObj = new JSONObject(map);
 				nameValuePairs.add(new BasicNameValuePair("apps", jsonObj.toString()));
 				map.clear();
+				
 				map.put("status_monitor_paramaters", getStatParams(context));
 				JSONObject jsonObj2 = new JSONObject(map);
 				nameValuePairs.add(new BasicNameValuePair("status_monitor_paramaters", jsonObj2.toString()));
 				map.clear();
+				
 				httpost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 				response = httpclient.execute(httpost,responseHandler);
 				Log.i("PhoneLab-" + getClass().getSimpleName(), "Response: \n" + response);
 
 				JSONObject responseJ = new JSONObject(response);
 				if (responseJ.getString("error").equals("")) {//success
-					
+					//TODO What ?? Do we need this?
 				} else {//error
 					
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 	}
 
 	/**
+	 * Method to get all status monitor parameters
+	 * 
 	 * @param context
 	 * @return jSONArray containing all the status monitor parameters
 	 */
@@ -95,6 +97,7 @@ public class UploadDeviceStatus {
 				}
 			} catch (XPathExpressionException e) {
 				e.printStackTrace();
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 		}
 		
@@ -124,10 +127,10 @@ public class UploadDeviceStatus {
 					app.put("version", "" + application.getVersion());
 					app.put("action", "" + application.getAction());
 					JSONObject object = new JSONObject(app);
-					apps.add(object);
 				}
 			} catch (XPathExpressionException e) {
 				e.printStackTrace();
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 		}
 		
