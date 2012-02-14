@@ -3,5 +3,9 @@
 
     <string name="hello">Hello World, PhoneLabMainView!</string>
     <string name="app_name">PhoneLab</string>
+    <string name="phservices">PhoneLab Services</string>
+    <string name="instlldapps">See Installed Applications</string>
+    <string name="moreinfo">More info</string>
+    <string name="org_name">Computer Science and Engineering SUNY, Buffalo</string>
 
 </resources>

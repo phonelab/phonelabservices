@@ -144,6 +144,7 @@ public class LoggerService extends Service {
 						
 						while((line = ip.readLine()) != null) {
 							op.write(line);
+							op.newLine();
 						}
 						op.flush(); 
 						op.close(); 
@@ -162,7 +163,11 @@ public class LoggerService extends Service {
 			// Set last successful upload time			
 			try {
 			    params.put("file", f);
-			} catch(FileNotFoundException e) {}
+			} catch(FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			client.post(url , params, new AsyncHttpResponseHandler() {
 			    @Override
 			    public void onSuccess(String response) {
