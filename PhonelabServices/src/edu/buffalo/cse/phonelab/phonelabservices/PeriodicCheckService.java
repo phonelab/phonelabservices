@@ -5,6 +5,8 @@
  */
 package edu.buffalo.cse.phonelab.phonelabservices;
 
+// TESTing for update status
+
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.app.AlarmManager;
