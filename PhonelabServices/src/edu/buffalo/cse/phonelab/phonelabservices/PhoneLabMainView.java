@@ -13,7 +13,9 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
-
+/**
+ * Main view GUI.
+ */
 public class PhoneLabMainView extends Activity {
     /** Called when the activity is first created. */
     @Override
@@ -42,6 +44,9 @@ public class PhoneLabMainView extends Activity {
 	 * If there exist an already set up alarm, it will do nothing 
 	 */
 	private void reschedulePeriodicMonitoring() {
+		
+		//TODO didn't get why we need this.
+		
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Rescheduling periodic checking...");
 		AlarmManager mgr = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
 		Intent newIntent = new Intent(getApplicationContext(), PeriodicCheckReceiver.class);

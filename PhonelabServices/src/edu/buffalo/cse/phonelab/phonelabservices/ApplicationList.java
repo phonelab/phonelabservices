@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.buffalo.cse.phonelab.phonelabservices;
 
 import java.util.ArrayList;
@@ -14,17 +11,21 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
+import edu.buffalo.cse.phonelab.c2dm.MessageService;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabApplication;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabManifest;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
 /**
+ *  GUI layout to provide application listing.
+ *  
  * @author Muhammed Fatih Bulut
  *
  * mbulut@buffalo.edu
  */
 public class ApplicationList extends ListActivity {
 	private ArrayList<PhoneLabApplication> applications = null;
+	
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -46,6 +47,7 @@ public class ApplicationList extends ListActivity {
 			}
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 	}
 
@@ -60,8 +62,11 @@ public class ApplicationList extends ListActivity {
 			}
 		}
 	}
+	
 
 	/**
+	 * TODO repetition. may be remove this?
+	 * 
 	 * Used to send manually start intents using android.intent.action.MAIN. 
 	 * @param app the phonelab Application
 	 * @param dbAdapter the hook to device database          

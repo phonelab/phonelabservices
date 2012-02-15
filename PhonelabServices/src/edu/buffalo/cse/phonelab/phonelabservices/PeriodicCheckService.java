@@ -21,7 +21,9 @@ import edu.buffalo.cse.phonelab.statusmonitor.StatusMonitorReceiver;
 import edu.buffalo.cse.phonelab.utilities.Locks;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
-
+/**
+ * starts periodic check service. 
+ */
 public class PeriodicCheckService extends IntentService {
 
 	public PeriodicCheckService() {
@@ -41,6 +43,7 @@ public class PeriodicCheckService extends IntentService {
 				registrationIntent.putExtra("sender", Util.C2DM_EMAIL);
 				startService(registrationIntent);
 			} else {
+
 				Locks.acquireWakeLock(this);
 
 				Intent regService = new Intent(this, RegistrationService.class);

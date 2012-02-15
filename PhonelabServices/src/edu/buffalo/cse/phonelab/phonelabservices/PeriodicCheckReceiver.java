@@ -11,6 +11,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+/**
+ * Received Intent to turn on the periodic check 
+ */
 public class PeriodicCheckReceiver extends BroadcastReceiver {
 	
 	@Override
