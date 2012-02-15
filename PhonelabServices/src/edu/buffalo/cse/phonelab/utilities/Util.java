@@ -44,12 +44,12 @@ public class Util {
 	public static final String C2DM_EMAIL = "phone.lab.buffalo@gmail.com";
 	
 	//Data logger Constants
-	public final static long UPDATE_INTERVAL = 1000*30;
+	public final static long UPDATE_INTERVAL = 1000*60*10;//10 mins
 	public final static String TAG = "LogService";
-	public final static int LOG_FILE_SIZE = 100;//KB
+	public final static int LOG_FILE_SIZE = 10;//KB
 	public final static int AUX_LOG_FILES = 10;
 	public final static String LOG_DIR = "log";
-	public final static long THRESHOLD = 90;//KB
+	public final static long THRESHOLD = 7;//KB
 	public final static String POST_URL = "http://107.20.190.88/log/";
 	
 	public static String getDeviceId (Context context) {
