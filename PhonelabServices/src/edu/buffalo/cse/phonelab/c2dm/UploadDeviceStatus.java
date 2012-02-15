@@ -127,6 +127,7 @@ public class UploadDeviceStatus {
 					app.put("version", "" + application.getVersion());
 					app.put("action", "" + application.getAction());
 					JSONObject object = new JSONObject(app);
+					apps.add(object);
 				}
 			} catch (XPathExpressionException e) {
 				e.printStackTrace();
