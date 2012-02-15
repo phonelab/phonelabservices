@@ -131,8 +131,11 @@ public class LoggerService extends Service {
 	private void transferLogFiles() {
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Starting to Merge files");
 		File[] allFiles = new File(LOG_DIR).listFiles();
-		String mergedFileSrc = LOG_DIR + "merged.txt";
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Files found .. " + allFiles.length);
+		
+		new LoggerAsyncPusher(getApplicationContext(), editor).execute(allFiles);
+		/*
+		String mergedFileSrc = LOG_DIR + "merged.txt";
 		String line = "";
 		AsyncHttpClient client = new AsyncHttpClient();
 		RequestParams params = new RequestParams();
@@ -193,7 +196,7 @@ public class LoggerService extends Service {
 			// No File
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "No Log file exist");
 
-		}
+		}*/
 	}
 	
 	/**
