@@ -1,15 +1,10 @@
 package edu.buffalo.cse.phonelab.datalogger;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -20,13 +15,10 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Binder;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
-
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
-
 import edu.buffalo.cse.phonelab.utilities.Util;
 
 /**
@@ -41,7 +33,8 @@ public class LoggerService extends Service {
 	private final String LOG_DIR = Environment.getExternalStorageDirectory() + "/" + Util.LOG_DIR + "/";
 	private SharedPreferences settings;
 	private Editor editor;
-	
+    private Handler mHandler = new Handler(Looper.getMainLooper());
+
 	/**
 	 * start the logging data
 	 */
@@ -132,8 +125,17 @@ public class LoggerService extends Service {
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Starting to Merge files");
 		File[] allFiles = new File(LOG_DIR).listFiles();
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Files found .. " + allFiles.length);
+		final File[] temp = allFiles.clone();
+		mHandler.post(new Runnable() {
+			
+			@Override
+			public void run() {
+				new LoggerAsyncPusher(getApplicationContext(), editor).execute(temp);
+				
+			}
+		});
 		
-		new LoggerAsyncPusher(getApplicationContext(), editor).execute(allFiles);
+		
 		/*
 		String mergedFileSrc = LOG_DIR + "merged.txt";
 		String line = "";
