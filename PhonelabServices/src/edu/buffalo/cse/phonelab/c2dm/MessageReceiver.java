@@ -16,7 +16,7 @@ import android.util.Log;
  *         Contains the method receives an C2DM Intent Broadcast , accepts it
  *         and sends it to message service for processing.
  */
-class MessageReceiver extends BroadcastReceiver {
+public class MessageReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {

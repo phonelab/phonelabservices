@@ -47,25 +47,26 @@ public class UploadDeviceStatus {
 					nameValuePairs.add(new BasicNameValuePair("reg_id", regId));
 				}
 				HashMap<String, JSONArray> map = new HashMap<String, JSONArray>();
-				
+
 				map.put("apps", getApss(context));
 				JSONObject jsonObj = new JSONObject(map);
 				nameValuePairs.add(new BasicNameValuePair("apps", jsonObj.toString()));
 				map.clear();
-				
+
 				map.put("status_monitor_paramaters", getStatParams(context));
 				JSONObject jsonObj2 = new JSONObject(map);
 				nameValuePairs.add(new BasicNameValuePair("status_monitor_paramaters", jsonObj2.toString()));
 				map.clear();
-				
+
 				httpost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 				response = httpclient.execute(httpost,responseHandler);
+				Log.i("PhoneLab-" + getClass().getSimpleName(), "Response: \n" + response);
 
 				JSONObject responseJ = new JSONObject(response);
 				if (responseJ.getString("error").equals("")) {//success
-					Log.i("PhoneLab-" + getClass().getSimpleName(), "Success!\n Response: \n" + response);
+					//TODO What ?? Do we need this?
 				} else {//error
-					Log.w("PhoneLab-" + getClass().getSimpleName(), "Failure!\n Response: \n" + response);
+
 				}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -99,7 +100,7 @@ public class UploadDeviceStatus {
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 		}
-		
+
 		JSONArray jsonArray = new JSONArray(statParams);
 		return jsonArray;
 	}
@@ -125,14 +126,15 @@ public class UploadDeviceStatus {
 					app.put("download", "" + application.getDownload());
 					app.put("version", "" + application.getVersion());
 					app.put("action", "" + application.getAction());
-					//JSONObject object = new JSONObject(app);
+					JSONObject object = new JSONObject(app);
+					apps.add(object);
 				}
 			} catch (XPathExpressionException e) {
 				e.printStackTrace();
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 		}
-		
+
 		JSONArray jsonArray = new JSONArray(apps);
 		return jsonArray;
 	}
