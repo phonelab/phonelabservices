@@ -261,6 +261,7 @@ public class LoggerService extends Service {
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "Logcat process not found, starting process");
 			// create log dir if it doesn`t exist
 			createLogDir();
+			System.out.println(LOG_DIR);
 			Runtime.getRuntime().exec("logcat -v long -f " + LOG_DIR + "log.out -r " + Util.LOG_FILE_SIZE + " -n " + Util.AUX_LOG_FILES + " &");
 			pid = getPID("logcat").iterator().next();
 	        editor.putInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, pid);

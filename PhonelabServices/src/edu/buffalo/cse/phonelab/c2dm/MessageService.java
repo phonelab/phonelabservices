@@ -375,19 +375,20 @@ public class MessageService extends IntentService {
 	/**
 	 * Removes a file whose path is given.
 	 * @param path to the file to be removed
-	 * TODO must return successful deletion of file
 	 */
-	private void removeFile (String path) {
+	private boolean removeFile (String path) {
 		File file = new File(path);
 		
 		if (file.delete()) {
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "File at " + path + " deleted successfully");
+			return true;
 		} else {
 			Log.e("PhoneLab-" + getClass().getSimpleName(), "File at " + path + " couldn't be deleted");
 			if(file.isDirectory()){//Directories need to be empty
 				Log.e("PhoneLab-" + getClass().getSimpleName(),  path + " leads to a directory. Needs to be empty to be deleted.");
 			}
-			//TODO check for su ? 
+			return false;
+			//TODO check for su  ? 
 		}
 	}
 

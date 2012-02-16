@@ -60,13 +60,12 @@ public class UploadDeviceStatus {
 				
 				httpost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 				response = httpclient.execute(httpost,responseHandler);
-				Log.i("PhoneLab-" + getClass().getSimpleName(), "Response: \n" + response);
 
 				JSONObject responseJ = new JSONObject(response);
 				if (responseJ.getString("error").equals("")) {//success
-					//TODO What ?? Do we need this?
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Success!\n Response: \n" + response);
 				} else {//error
-					
+					Log.w("PhoneLab-" + getClass().getSimpleName(), "Failure!\n Response: \n" + response);
 				}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -126,7 +125,7 @@ public class UploadDeviceStatus {
 					app.put("download", "" + application.getDownload());
 					app.put("version", "" + application.getVersion());
 					app.put("action", "" + application.getAction());
-					JSONObject object = new JSONObject(app);
+					//JSONObject object = new JSONObject(app);
 				}
 			} catch (XPathExpressionException e) {
 				e.printStackTrace();
