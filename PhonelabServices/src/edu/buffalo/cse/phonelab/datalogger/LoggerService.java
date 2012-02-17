@@ -12,9 +12,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.Environment;
 import android.os.IBinder;
@@ -38,6 +40,7 @@ public class LoggerService extends Service {
 	private final String LOG_DIR = Environment.getExternalStorageDirectory() + "/" + Util.LOG_DIR + "/";
 	private SharedPreferences settings;
 	private Editor editor;
+	boolean isFailed = false;
 	boolean mergeTxtDeleted = false; //temp global variables. check TODO
 	int mergeFileCounter = 1;  //temp global variables. check TODO
 
@@ -113,12 +116,12 @@ public class LoggerService extends Service {
 		if (allFiles.length > 1) {
 			for(int i=0; i<allFiles.length; i++) {
 				String fileName = allFiles[i].getName();
-				if (fileName != "log.out" && fileName.startsWith("log.out.")) {
+				if (fileName.startsWith("log.out.") || fileName.startsWith("1")) {
 					return true;
 				}
 			}
 		}
-		
+
 		return false;
 	}
 
@@ -154,7 +157,18 @@ public class LoggerService extends Service {
 		} else { // No File
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "No Log file exist");
 		}
-		
+
+		ConnectivityManager myConnManager = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+		if(myConnManager != null){
+			if(myConnManager.getActiveNetworkInfo() != null){
+				if(myConnManager.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_WIFI || myConnManager.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_MOBILE) {
+					isFailed = false;
+				} else {
+					isFailed = true;
+				}
+			} 
+		}
+
 		transferFiles();
 	}
 
@@ -220,7 +234,7 @@ public class LoggerService extends Service {
 			// create log dir if it doesn`t exist
 			createLogDir();
 			System.out.println(LOG_DIR);
-			Runtime.getRuntime().exec("logcat -v long -f " + LOG_DIR + "log.out -r " + Util.LOG_FILE_SIZE + " -n " + Util.AUX_LOG_FILES + " &");
+			Runtime.getRuntime().exec("logcat -v threadtime -f " + LOG_DIR + "log.out -r " + Util.LOG_FILE_SIZE + " -n " + Util.AUX_LOG_FILES + " &");
 			pid = getPID("logcat").iterator().next();
 			editor.putInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, pid);
 			editor.commit();
@@ -255,7 +269,7 @@ public class LoggerService extends Service {
 			return LoggerService.this;
 		}
 	}
-	
+
 	/**
 	 * Method to initiate log transfers
 	 */
@@ -266,12 +280,16 @@ public class LoggerService extends Service {
 			for(int i=0; i < allFiles.length; i++) {
 				String fileName = allFiles[i].getName();
 				if (fileName.startsWith("1")) {
-					transfer (fileName);
+					if (!isFailed) {
+						transfer(fileName);
+					} else {
+						break;
+					}
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * Perform the file transfer to the server
 	 * @param fileName
@@ -296,9 +314,10 @@ public class LoggerService extends Service {
 					}
 					Log.i("PhoneLab-" + getClass().getSimpleName(), "Response " + response);
 				}
-				
+
 				@Override
-				public void onFailure(Throwable e){ 
+				public void onFailure(Throwable e){
+					isFailed = true;
 					new Throwable(e); 
 					Log.e("PhoneLab-" + getClass().getSimpleName(), "Transfering " + f.getName() + " failed");
 				}
