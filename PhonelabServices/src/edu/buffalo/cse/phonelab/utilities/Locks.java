@@ -36,7 +36,9 @@ public class Locks {
 		if (lockWake != null) {
 			Log.i("PhoneLab-" + TAG, "wake lock released");
 			try {
-				lockWake.release();
+				if (lockWake.isHeld()) {
+					lockWake.release();
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 				Log.e("PhoneLab-" + Locks.class.getClass().getSimpleName(), e.getMessage());
@@ -57,7 +59,9 @@ public class Locks {
 		if (lockWifi != null) {
 			Log.i("PhoneLab-" + TAG, "wifi lock released");
 			try {
-				lockWifi.release();
+				if (lockWifi.isHeld()) {
+					lockWifi.release();
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 				Log.e("PhoneLab-" + Locks.class.getClass().getSimpleName(), e.getMessage());
