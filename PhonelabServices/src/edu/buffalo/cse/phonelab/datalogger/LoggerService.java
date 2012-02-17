@@ -1,11 +1,8 @@
 package edu.buffalo.cse.phonelab.datalogger;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -20,9 +17,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Binder;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -43,7 +38,7 @@ public class LoggerService extends Service {
 	private final String LOG_DIR = Environment.getExternalStorageDirectory() + "/" + Util.LOG_DIR + "/";
 	private SharedPreferences settings;
 	private Editor editor;
-    boolean mergeTxtDeleted = false; //temp global variables. check TODO
+	boolean mergeTxtDeleted = false; //temp global variables. check TODO
 	int mergeFileCounter = 1;  //temp global variables. check TODO
 
 	/**
@@ -51,13 +46,13 @@ public class LoggerService extends Service {
 	 */
 	public void onCreate() {
 		super.onCreate();
-		Log.i("PhoneLab-" + getClass().getSimpleName(), "Start Service");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Start Logger Service");
 		settings = getApplicationContext().getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
 		editor = settings.edit();
-		
+
 		start();
 	}
-	
+
 	public void start() {
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
@@ -65,11 +60,11 @@ public class LoggerService extends Service {
 				Log.i("PhoneLab-" + getClass().getSimpleName(), "Service Running");
 				// Check for LogCat Process
 				checkLogCatProcess();
-				
+
 			}
 		},0, Util.UPDATE_INTERVAL);
 	}
-	
+
 	/**
 	 * Checks whether LogCat Process is running or not, if not initiates the process 
 	 */
@@ -85,7 +80,7 @@ public class LoggerService extends Service {
 					Log.i("PhoneLab-" + getClass().getSimpleName(), "Logcat process found " + pid);
 					// Process Found
 					if (logFileThreshold()) {
-						transferLogFiles();
+						renameLogFiles();
 					}
 					foundLogCat = true;
 					break;
@@ -106,19 +101,27 @@ public class LoggerService extends Service {
 		}
 		//TODO No exceptions ?
 	}
-	
+
 	/**
-	 * Checks if the length of the file is less than the set threshold. 
+	 * Checks if there exist a auxilary waiting to transfer log file 
 	 * 
-	 * @return true if log file length is less than the threshold, false otherwise
+	 * @return true if there exist a auxilary waiting to transfer log file, false otherwise
 	 */
 	private boolean logFileThreshold() {
-		File f = new File(LOG_DIR + "log.out");
-		boolean threshold = f.length() < Util.THRESHOLD * 1024;
-		Log.i("PhoneLab-" + getClass().getSimpleName(), "Checking Threshold ... " + threshold);
-		return threshold;
-	}
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Checking Threshold");
+		File[] allFiles = new File(LOG_DIR).listFiles();
+		if (allFiles.length > 1) {
+			for(int i=0; i<allFiles.length; i++) {
+				String fileName = allFiles[i].getName();
+				if (fileName != "log.out" && fileName.startsWith("log.out.")) {
+					return true;
+				}
+			}
+		}
 		
+		return false;
+	}
+
 	/**
 	 * Check for valid Log Files.
 	 * Log.out is continously written
@@ -132,130 +135,29 @@ public class LoggerService extends Service {
 	 * @param String filename - filename
 	 * @return boolean
 	 */
-	private void transferLogFiles() {
-		Log.i("PhoneLab-" + getClass().getSimpleName(), "Starting to Merge files");
+	private void renameLogFiles() {
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Starting to rename files");
 		File[] allFiles = new File(LOG_DIR).listFiles();
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Files found .. " + allFiles.length);
-		
-		String mergedFileSrc = LOG_DIR + "merged.txt";
-		String line = "";
-		AsyncHttpClient client = new AsyncHttpClient();
-		RequestParams params = new RequestParams();
-		String url = Util.POST_URL + Util.getDeviceId(getApplicationContext()) + "/";
-		
-		// If Log file exists in the directory
 		if (allFiles.length > 1) {
-			// Check all files
 			for(int i=0; i<allFiles.length; i++) {
 				String fileName = allFiles[i].getName();
-				
-				// Merge files together & save as merged.txt
 				if (fileName != "log.out" && fileName.startsWith("log.out.")) {
 					Log.i("PhoneLab-" + getClass().getSimpleName(), "File " + i + " " + allFiles[i].getName());
-					// Merge files
-					try {
-						BufferedReader ip = new BufferedReader(new FileReader(allFiles[i]));
-						BufferedWriter op = new BufferedWriter(new FileWriter(mergedFileSrc, true));
-						
-						while((line = ip.readLine()) != null) {
-							op.write(line);
-							op.newLine();
-						}
-						op.flush(); 
-						op.close(); 
-						ip.close();
-					} catch (Exception e) {
-						e.printStackTrace();
-						Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+					if (allFiles[i].renameTo(new File(LOG_DIR + System.currentTimeMillis() + ".log"))) {
+						Log.i("PhoneLab-" + getClass().getSimpleName(), "Renamed successfully");
+					} else {
+						Log.w("PhoneLab-" + getClass().getSimpleName(), "Renamed failed");
 					}
-					Log.i("PhoneLab-" + getClass().getSimpleName(), "Removing File " + i + " " + allFiles[i].delete());
 				}
 			}
-			
-			// Now lets send Merged File
-			final File f = new File(mergedFileSrc);
-			Log.i("PhoneLab-" + getClass().getSimpleName(), "Merged File " + f.length());
-			// If File is new i.e created after last uploaded time
-			// Set last successful upload time			
-			try {
-				
-			params.put("file", f);
-			
-			client.post(url , params, new AsyncHttpResponseHandler() {
-			    @Override
-			    public void onSuccess(String response) {
-			    	Date now = new Date();
-					editor.putLong(Util.SHARED_PREFERENCES_DATA_LOGGER_LAST_UPDATE_TIME, (System.currentTimeMillis()/1000 - ((now.getMinutes() * 60  + now.getSeconds()))));
-					editor.commit();
-					
-					mergeTxtDeleted = f.delete();
-					Log.i("PhoneLab-" + getClass().getSimpleName(), "Removing Merged File " + mergeTxtDeleted);
-					Log.i("PhoneLab-" + getClass().getSimpleName(), "Response " + response);
-			    }
-			});
-			
-			//getting the mergeFileCounter 
-			while(new File(mergedFileSrc+"."+mergeFileCounter).exists())
-				mergeFileCounter++;
-			
-			if (mergeTxtDeleted)
-			{ //unable to delete. rename merge.txt
-				Log.w("PhoneLab-" + getClass().getSimpleName(), "Merge file still exists");
-				
-				System.out.println(mergeFileCounter);
-				
-				if(f.renameTo(new File(mergedFileSrc+"."+mergeFileCounter))) 
-					Log.i("PhoneLab-" + getClass().getSimpleName(), "Merged file renamed and now deleting " + f.delete());
-				else
-					Log.e("PhoneLab-" + getClass().getSimpleName(), "Merged file could not be renamed ");
-			}
-			else {
-				//send all merge files that were not sent before because we have connection. 
-				while(mergeFileCounter > 1){
-					
-					mergeFileCounter--;
-					final File f1 = new File(mergedFileSrc + "." + mergeFileCounter);
-					Log.i("PhoneLab-" + getClass().getSimpleName(), "Sending file Merge.txt." + mergeFileCounter);
-					// If File is new i.e created after last uploaded time
-					// Set last successful upload time			
-						
-					params.put("file", f1);
-					
-					client.post(url , params, new AsyncHttpResponseHandler() {
-						//TODO create own response handler so mergeFileCounter and mergeDeleted Text aren't global.
-						
-					    @Override
-					    public void onSuccess(String response) {
-					    	Date now = new Date();
-							editor.putLong(Util.SHARED_PREFERENCES_DATA_LOGGER_LAST_UPDATE_TIME, (System.currentTimeMillis()/1000 - ((now.getMinutes() * 60  + now.getSeconds()))));
-							editor.commit();
-							Log.i("PhoneLab-" + getClass().getSimpleName(), "Removing File Merge.txt." + mergeFileCounter +  f1.delete());
-							Log.i("PhoneLab-" + getClass().getSimpleName(), "Response " + response);
-					    }
-					    
-					    @Override
-					    public void onFailure(Throwable e){
-					    	new Throwable(e); 
-					    	// to break the loop. No point in sending. connection's gone.
-					    }
-					    
-					});
-				}
-			}
-			
-			} catch(FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (Exception e) {
-				e.printStackTrace();
-				Log.e("PhoneLab-" + getClass().getSimpleName(), "Error while sending logs to server\n" + e.getMessage());
-			}
-		} else {
-			// No File
+		} else { // No File
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "No Log file exist");
-
 		}
+		
+		transferFiles();
 	}
-	
+
 	/**
 	 * Create Log Dir if it doesn`t exist
 	 * @return boolean
@@ -268,7 +170,7 @@ public class LoggerService extends Service {
 			f.mkdirs();
 		}
 	}
-	
+
 	/**
 	 * Returns PIDs of process
 	 * @param String processName - process name
@@ -276,25 +178,25 @@ public class LoggerService extends Service {
 	 */
 	private List<Integer> getPID(String processName) {
 		List<Integer> pids = new ArrayList<Integer>();
-		
+
 		StringBuilder psString = new StringBuilder();
 		try {
 			Process process = Runtime.getRuntime().exec("ps");// Verbose filter
-	        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-	        String line;
-	        while ((line = bufferedReader.readLine()) != null) {
-	        	// check whether processName exists in line
-	        	if (line.endsWith(processName)) {
-	        		psString.append(line + "\n");
-	        	}
-	        }
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			String line;
+			while ((line = bufferedReader.readLine()) != null) {
+				// check whether processName exists in line
+				if (line.endsWith(processName)) {
+					psString.append(line + "\n");
+				}
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		// Check whether some processes were collected & Terminated is not contained
 		if(psString.length() > 0 && !psString.toString().matches("Terminated")) {
 			String[] splitString = psString.toString().split("\n");
-			
+
 			for(int i = 0; i<splitString.length; i++) {
 				if (splitString[i].startsWith("app_")) {
 					Log.i("PhoneLab-" + getClass().getSimpleName(), splitString[i].toString());
@@ -303,10 +205,10 @@ public class LoggerService extends Service {
 				}
 			}
 		}
-		
-	    return pids;
+
+		return pids;
 	}
-	
+
 	/**
 	 * Create Logcat process if it doesn`t exist
 	 */
@@ -320,16 +222,16 @@ public class LoggerService extends Service {
 			System.out.println(LOG_DIR);
 			Runtime.getRuntime().exec("logcat -v long -f " + LOG_DIR + "log.out -r " + Util.LOG_FILE_SIZE + " -n " + Util.AUX_LOG_FILES + " &");
 			pid = getPID("logcat").iterator().next();
-	        editor.putInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, pid);
-	        editor.commit();
-	        Log.i("PhoneLab-" + getClass().getSimpleName(), "PID to db" + pid);
+			editor.putInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, pid);
+			editor.commit();
+			Log.i("PhoneLab-" + getClass().getSimpleName(), "PID to db" + pid);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Stop Logging. Service Killed. Timer Stopped.
 	 */
@@ -338,20 +240,74 @@ public class LoggerService extends Service {
 		if (timer != null) {
 			timer.cancel();
 		}
-		
-		Log.i("PhoneLab-" + getClass().getSimpleName(), "Kill Service");
-		Log.i("PhoneLab-" + getClass().getSimpleName(), "Timer stopped.");
+
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Logger Service is destroyed");
 	}
-	
+
 	@Override
 	public IBinder onBind(Intent arg0) {
 		// TODO Auto-generated method stub. Any reason this ?? 
 		return mBinder;
 	}
-	
+
 	public class LogBinder extends Binder {
 		LoggerService getService() {
 			return LoggerService.this;
+		}
+	}
+	
+	/**
+	 * Method to initiate log transfers
+	 */
+	private void transferFiles () {
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Transfering files now...");
+		File[] allFiles = new File(LOG_DIR).listFiles();
+		if (allFiles.length > 1) {
+			for(int i=0; i < allFiles.length; i++) {
+				String fileName = allFiles[i].getName();
+				if (fileName.startsWith("1")) {
+					transfer (fileName);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Perform the file transfer to the server
+	 * @param fileName
+	 */
+	private void transfer(String fileName) {
+		final File f = new File(LOG_DIR + fileName);
+		AsyncHttpClient client = new AsyncHttpClient();
+		RequestParams params = new RequestParams();
+		try {
+			params.put("file", f);
+			client.post(Util.POST_URL + Util.getDeviceId(getApplicationContext()) + "/" , params, new AsyncHttpResponseHandler() {
+				@Override
+				public void onSuccess(String response) {
+					Date now = new Date();
+					editor.putLong(Util.SHARED_PREFERENCES_DATA_LOGGER_LAST_UPDATE_TIME, (System.currentTimeMillis()/1000 - ((now.getMinutes() * 60  + now.getSeconds()))));
+					editor.commit();
+
+					if (f.delete()) {
+						Log.i("PhoneLab-" + getClass().getSimpleName(), "" + f.getName() + " is deleted");
+					} else {
+						Log.w("PhoneLab-" + getClass().getSimpleName(), "" + f.getName() + " couldn't be deleted");
+					}
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Response " + response);
+				}
+				
+				@Override
+				public void onFailure(Throwable e){ 
+					new Throwable(e); 
+					Log.e("PhoneLab-" + getClass().getSimpleName(), "Transfering " + f.getName() + " failed");
+				}
+			});
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			Log.e("PhoneLab-" + getClass().getSimpleName(), "Some other error occured");
+			e.printStackTrace();
 		}
 	}
 }

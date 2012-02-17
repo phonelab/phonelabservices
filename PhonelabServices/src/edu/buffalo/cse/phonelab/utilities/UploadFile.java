@@ -24,20 +24,21 @@ public class UploadFile {
 	private static final String Tag = "com.phonelab.controller";
 
 	public boolean upload(Context context, String uploadURL, String fileDir) {		
+		
 		try {
 			File dir = Environment.getExternalStorageDirectory();
 			File file = new File(dir, fileDir);
 			FileInputStream fis = new FileInputStream(file);// context.openFileInput(fileDir);
 			HttpFileUploader htfu = new HttpFileUploader(uploadURL, "noparamshere", fileDir);
-			htfu.doStart(fis);
+			if (htfu.doStart(fis))
+				return true;
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
-
-		return true;
+		
+		return false;
 	}
-
 
 	public class HttpFileUploader {
 		URL connectURL;
@@ -57,12 +58,12 @@ public class UploadFile {
 			this.fileName = fileName;
 		}
 
-		void doStart(FileInputStream stream) { 
+		boolean doStart(FileInputStream stream) { 
 			fileInputStream = stream;
-			uploadNow();
+			return uploadNow();
 		} 
 
-		void uploadNow(){
+		boolean uploadNow(){
 			String lineEnd = "\r\n";
 			String twoHyphens = "--";
 			String boundary = "*****";
@@ -118,11 +119,15 @@ public class UploadFile {
 				String s=b.toString(); 
 				Log.i("PhoneLab-" + "Response",s);
 				dos.close();
+				
+				return true;
 			} catch (MalformedURLException ex) {
 				Log.e("PhoneLab-" + Tag, "error: " + ex.getMessage(), ex);
 			} catch (IOException ioe) {
 				Log.e("PhoneLab-" + Tag, "error: " + ioe.getMessage(), ioe);
 			}
+			
+			return false;
 		}
 	}
 }

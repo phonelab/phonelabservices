@@ -18,6 +18,7 @@
  	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
  	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
  	<uses-permission android:name="android.permission.WAKE_LOCK"/>
+ 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
         android:icon="@drawable/ic_launcher"
@@ -57,6 +58,7 @@
         <receiver android:name="edu.buffalo.cse.phonelab.receivers.OnBootReceiver">
             <intent-filter >
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.REBOOT" />
             </intent-filter>
         </receiver>
         <receiver android:name="edu.buffalo.cse.phonelab.receivers.PowerOnReceiver">
