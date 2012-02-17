@@ -43,7 +43,9 @@ public class LoggerService extends Service {
 	private final String LOG_DIR = Environment.getExternalStorageDirectory() + "/" + Util.LOG_DIR + "/";
 	private SharedPreferences settings;
 	private Editor editor;
-    boolean mergeTxtDeleted ;
+    boolean mergeTxtDeleted = false; //temp global variables. check TODO
+	int mergeFileCounter = 1;  //temp global variables. check TODO
+
 	/**
 	 * start the logging data
 	 */
@@ -136,7 +138,6 @@ public class LoggerService extends Service {
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Files found .. " + allFiles.length);
 		
 		String mergedFileSrc = LOG_DIR + "merged.txt";
-		int mergeFileCounter = 1;
 		String line = "";
 		AsyncHttpClient client = new AsyncHttpClient();
 		RequestParams params = new RequestParams();
@@ -209,25 +210,33 @@ public class LoggerService extends Service {
 					Log.e("PhoneLab-" + getClass().getSimpleName(), "Merged file could not be renamed ");
 			}
 			else {
-				//send all merge files that were not sent beofer because we have connection. 
+				//send all merge files that were not sent before because we have connection. 
 				while(mergeFileCounter > 1){
 					
 					mergeFileCounter--;
 					final File f1 = new File(mergedFileSrc + "." + mergeFileCounter);
-					Log.i("PhoneLab-" + getClass().getSimpleName(), "Sending file Merger.txt." + mergeFileCounter);
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Sending file Merge.txt." + mergeFileCounter);
 					// If File is new i.e created after last uploaded time
 					// Set last successful upload time			
 						
 					params.put("file", f1);
 					
 					client.post(url , params, new AsyncHttpResponseHandler() {
+						//TODO create own response handler so mergeFileCounter and mergeDeleted Text aren't global.
+						
 					    @Override
 					    public void onSuccess(String response) {
 					    	Date now = new Date();
 							editor.putLong(Util.SHARED_PREFERENCES_DATA_LOGGER_LAST_UPDATE_TIME, (System.currentTimeMillis()/1000 - ((now.getMinutes() * 60  + now.getSeconds()))));
 							editor.commit();
-							Log.i("PhoneLab-" + getClass().getSimpleName(), "Removing Merged File "+  f1.delete());
+							Log.i("PhoneLab-" + getClass().getSimpleName(), "Removing File Merge.txt." + mergeFileCounter +  f1.delete());
 							Log.i("PhoneLab-" + getClass().getSimpleName(), "Response " + response);
+					    }
+					    
+					    @Override
+					    public void onFailure(Throwable e){
+					    	new Throwable(e); 
+					    	// to break the loop. No point in sending. connection's gone.
 					    }
 					    
 					});
