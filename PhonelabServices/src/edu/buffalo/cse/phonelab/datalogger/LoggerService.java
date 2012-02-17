@@ -43,8 +43,7 @@ public class LoggerService extends Service {
 	private final String LOG_DIR = Environment.getExternalStorageDirectory() + "/" + Util.LOG_DIR + "/";
 	private SharedPreferences settings;
 	private Editor editor;
-    private Handler mHandler = new Handler(Looper.getMainLooper());
-
+    boolean mergeTxtDeleted ;
 	/**
 	 * start the logging data
 	 */
@@ -137,6 +136,7 @@ public class LoggerService extends Service {
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Files found .. " + allFiles.length);
 		
 		String mergedFileSrc = LOG_DIR + "merged.txt";
+		int mergeFileCounter = 1;
 		String line = "";
 		AsyncHttpClient client = new AsyncHttpClient();
 		RequestParams params = new RequestParams();
@@ -177,22 +177,69 @@ public class LoggerService extends Service {
 			// If File is new i.e created after last uploaded time
 			// Set last successful upload time			
 			try {
-			    params.put("file", f);
-			} catch(FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+				
+			params.put("file", f);
+			
 			client.post(url , params, new AsyncHttpResponseHandler() {
 			    @Override
 			    public void onSuccess(String response) {
 			    	Date now = new Date();
 					editor.putLong(Util.SHARED_PREFERENCES_DATA_LOGGER_LAST_UPDATE_TIME, (System.currentTimeMillis()/1000 - ((now.getMinutes() * 60  + now.getSeconds()))));
 					editor.commit();
-					Log.i("PhoneLab-" + getClass().getSimpleName(), "Removing Merged File " + f.delete());
+					
+					mergeTxtDeleted = f.delete();
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Removing Merged File " + mergeTxtDeleted);
 					Log.i("PhoneLab-" + getClass().getSimpleName(), "Response " + response);
 			    }
 			});
+			
+			//getting the mergeFileCounter 
+			while(new File(mergedFileSrc+"."+mergeFileCounter).exists())
+				mergeFileCounter++;
+			
+			if (mergeTxtDeleted)
+			{ //unable to delete. rename merge.txt
+				Log.w("PhoneLab-" + getClass().getSimpleName(), "Merge file still exists");
+				
+				System.out.println(mergeFileCounter);
+				
+				if(f.renameTo(new File(mergedFileSrc+"."+mergeFileCounter))) 
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Merged file renamed and now deleting " + f.delete());
+				else
+					Log.e("PhoneLab-" + getClass().getSimpleName(), "Merged file could not be renamed ");
+			}
+			else {
+				//send all merge files that were not sent beofer because we have connection. 
+				while(mergeFileCounter > 1){
+					
+					mergeFileCounter--;
+					final File f1 = new File(mergedFileSrc + "." + mergeFileCounter);
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Sending file Merger.txt." + mergeFileCounter);
+					// If File is new i.e created after last uploaded time
+					// Set last successful upload time			
+						
+					params.put("file", f1);
+					
+					client.post(url , params, new AsyncHttpResponseHandler() {
+					    @Override
+					    public void onSuccess(String response) {
+					    	Date now = new Date();
+							editor.putLong(Util.SHARED_PREFERENCES_DATA_LOGGER_LAST_UPDATE_TIME, (System.currentTimeMillis()/1000 - ((now.getMinutes() * 60  + now.getSeconds()))));
+							editor.commit();
+							Log.i("PhoneLab-" + getClass().getSimpleName(), "Removing Merged File "+  f1.delete());
+							Log.i("PhoneLab-" + getClass().getSimpleName(), "Response " + response);
+					    }
+					    
+					});
+				}
+			}
+			
+			} catch(FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+				Log.e("PhoneLab-" + getClass().getSimpleName(), "Error while sending logs to server\n" + e.getMessage());
+			}
 		} else {
 			// No File
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "No Log file exist");
