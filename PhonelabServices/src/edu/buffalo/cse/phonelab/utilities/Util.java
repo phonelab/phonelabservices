@@ -44,7 +44,7 @@ public class Util {
 	public static final String C2DM_EMAIL = "phone.lab.buffalo@gmail.com";
 	
 	//Data logger Constants
-	public final static long UPDATE_INTERVAL = 1000*60;//10 mins
+	public final static long UPDATE_INTERVAL = 1000*120;//2 mins
 	public final static String TAG = "LogService";
 	public final static int LOG_FILE_SIZE = 300;//KB
 	public final static int AUX_LOG_FILES = 20;

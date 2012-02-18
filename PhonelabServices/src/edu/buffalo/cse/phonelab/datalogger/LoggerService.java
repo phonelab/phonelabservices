@@ -41,8 +41,8 @@ public class LoggerService extends Service {
 	private SharedPreferences settings;
 	private Editor editor;
 	boolean isFailed = false;
-	boolean mergeTxtDeleted = false; //temp global variables. check TODO
-	int mergeFileCounter = 1;  //temp global variables. check TODO
+	boolean mergeTxtDeleted = false; 
+	int transferedFileCounter = 0;  //temp global variables. check TODO
 
 	/**
 	 * start the logging data
@@ -274,6 +274,7 @@ public class LoggerService extends Service {
 	 * Method to initiate log transfers
 	 */
 	private void transferFiles () {
+		int transferedFileCounter = 0;
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Transfering files now...");
 		File[] allFiles = new File(LOG_DIR).listFiles();
 		if (allFiles.length > 1) {
@@ -281,7 +282,11 @@ public class LoggerService extends Service {
 				String fileName = allFiles[i].getName();
 				if (fileName.startsWith("1")) {
 					if (!isFailed) {
+						if (transferedFileCounter > 5) {
+							break;
+						}
 						transfer(fileName);
+						transferedFileCounter++;
 					} else {
 						break;
 					}
