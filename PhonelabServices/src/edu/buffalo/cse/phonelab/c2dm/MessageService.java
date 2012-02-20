@@ -25,6 +25,7 @@ import android.app.IntentService;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.os.SystemClock;
@@ -292,10 +293,10 @@ public class MessageService extends IntentService {
 	 * @return true if successful, otherwise false
 	 */
 	public boolean installApplication (PhoneLabApplication app) {
-		if (DownloadFile.downloadToDirectory(Util.APP_DOWNLOAD_URL + app.getDownload(), Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
+		if (DownloadFile.downloadToDirectory(Util.APP_DOWNLOAD_URL + app.getDownload(), getApplicationInfo().dataDir + "/" + app.getDownload())) {
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "Installing " + app.getName() + " now...");
 			try {
-				Process process = Runtime.getRuntime().exec("pm install " + Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+				Process process = Runtime.getRuntime().exec("pm install " + getApplicationInfo().dataDir + "/" + app.getDownload());
 
 				String line = null;
 				//Success to install APK
@@ -311,7 +312,7 @@ public class MessageService extends IntentService {
 						Log.i("PhoneLab-" + getClass().getSimpleName(), app.getName() + " installed successfully");
 
 						//Remove .apk from where it is downloaded
-						removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+						removeFile (getApplicationInfo().dataDir + "/" + app.getDownload());
 						return true;
 					}
 				}
@@ -335,7 +336,7 @@ public class MessageService extends IntentService {
 			}
 
 			//Remove .apk from where it is downloaded
-			removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+			removeFile (getApplicationInfo().dataDir + "/" + app.getDownload());
 		}
 
 		return false;
@@ -398,10 +399,10 @@ public class MessageService extends IntentService {
 	 * @return true if successful, otherwise false
 	 */
 	private boolean updateApplication(PhoneLabApplication app) {
-		if (DownloadFile.downloadToDirectory(Util.APP_DOWNLOAD_URL + app.getName() + ".apk", Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
+		if (DownloadFile.downloadToDirectory(Util.APP_DOWNLOAD_URL + app.getName() + ".apk", getApplicationInfo().dataDir + "/" + app.getDownload())) {
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "Updating " + app.getName() + " now...");
 			try {
-				Process process = Runtime.getRuntime().exec("pm -r install " + Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+				Process process = Runtime.getRuntime().exec("pm -r install " + getApplicationInfo().dataDir + "/" + app.getDownload());
 
 				String line = null;
 				//Success to install APK
@@ -417,7 +418,7 @@ public class MessageService extends IntentService {
 						Log.i("PhoneLab-" + getClass().getSimpleName(), app.getName() + " updated successfully");
 
 						//Remove .apk from where it is downloaded
-						removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+						removeFile (getApplicationInfo().dataDir + "/" + app.getDownload());
 						return true;
 					}
 				}
@@ -440,7 +441,7 @@ public class MessageService extends IntentService {
 			}
 
 			//Remove .apk from where it is downloaded
-			removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+			removeFile (getApplicationInfo().dataDir + "/" + app.getDownload());
 		}
 
 		return false;
