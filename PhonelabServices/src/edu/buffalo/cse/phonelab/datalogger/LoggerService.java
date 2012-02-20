@@ -37,7 +37,7 @@ import edu.buffalo.cse.phonelab.utilities.Util;
 public class LoggerService extends Service {
 	private final IBinder mBinder = new LogBinder();
 	private Timer timer = new Timer();
-	private final String LOG_DIR = getApplicationInfo().dataDir + "/" + Util.LOG_DIR + "/";
+	private final String LOG_DIR = Environment.getExternalStorageDirectory() + "/" + Util.LOG_DIR + "/";
 	private SharedPreferences settings;
 	private Editor editor;
 	boolean isFailed = false;

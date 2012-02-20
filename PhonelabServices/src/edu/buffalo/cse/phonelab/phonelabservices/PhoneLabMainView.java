@@ -23,6 +23,7 @@ public class PhoneLabMainView extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         reschedulePeriodicMonitoring();
+        System.out.println(getApplicationInfo().dataDir);
     }
 	
 	public void installedApps (View view) {
