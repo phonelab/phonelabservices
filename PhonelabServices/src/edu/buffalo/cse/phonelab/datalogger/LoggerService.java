@@ -303,6 +303,7 @@ public class LoggerService extends Service {
 		RequestParams params = new RequestParams();
 		try {
 			params.put("file", f);
+			params.put("filename", fileName);
 			client.post(Util.POST_URL + Util.getDeviceId(getApplicationContext()) + "/" , params, new AsyncHttpResponseHandler() {
 				@Override
 				public void onSuccess(String response) {

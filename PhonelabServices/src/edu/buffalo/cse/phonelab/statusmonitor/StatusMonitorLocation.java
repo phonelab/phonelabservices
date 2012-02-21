@@ -58,7 +58,7 @@ public class StatusMonitorLocation extends Service {
 					locationManager.removeUpdates(this);
 					timer.cancel();
 					Log.i("PhoneLab-" + getClass().getSimpleName(),
-							"Location: Latitude: "
+							"Location_Latitude: "
 									+ location.getLatitude()
 									+ " Longitude: "
 									+ location.getLongitude()

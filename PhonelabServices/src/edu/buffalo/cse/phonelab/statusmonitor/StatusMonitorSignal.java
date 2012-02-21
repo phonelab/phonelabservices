@@ -67,7 +67,7 @@ public class StatusMonitorSignal extends Service {
 							mStrength = Math.round((strength + 113f) / 2f);
 						}
 
-						Log.i("PhoneLab-" + getClass().getSimpleName(), "Signal Strength: " + strength + " asu: " + mStrength);
+						Log.i("PhoneLab-" + getClass().getSimpleName(), "Signal_Strength: " + strength + " asu: " + mStrength);
 					}  
 				} catch (Exception e) {
 					e.printStackTrace();
