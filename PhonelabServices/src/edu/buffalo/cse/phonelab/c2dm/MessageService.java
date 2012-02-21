@@ -156,7 +156,7 @@ public class MessageService extends IntentService {
 					} else {
 						Log.w("PhoneLab-" + getClass().getSimpleName(), "No Status Monitoring Alarm is currently set");
 					}
-				} catch (Exception e) { //TODO why so general
+				} catch (Exception e) { 
 					e.printStackTrace();
 					Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 				}
@@ -166,8 +166,12 @@ public class MessageService extends IntentService {
 				PendingIntent pending = PendingIntent.getBroadcast(getApplicationContext(), 0, newIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 				mgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), pending);
 				
-				//TODO to stop perodic checking ?
-			} 
+			} else if (message.equals("stop_periodic_checking")) { // stop checking
+				AlarmManager mgr = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+				Intent newIntent = new Intent(getApplicationContext(), PeriodicCheckReceiver.class);
+				PendingIntent pending = PendingIntent.getBroadcast(getApplicationContext(), 0, newIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+				mgr.cancel(pending);				
+			}
 		} catch (JSONException jsone) {
 			jsone.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), "C2DM Message cannot be parsed to JSON object!");
