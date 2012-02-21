@@ -64,9 +64,9 @@ public class UploadDeviceStatus {
 
 				JSONObject responseJ = new JSONObject(response);
 				if (responseJ.getString("error").equals("")) {//success
-					//TODO What ?? Do we need this?
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "File Uplodaded Successfully");
 				} else {//error
-
+					Log.e("PhoneLab-" + getClass().getSimpleName(), "File not uploaded successfully :\n"+responseJ.getString("error"));
 				}
 		} catch (Exception e) {
 			e.printStackTrace();

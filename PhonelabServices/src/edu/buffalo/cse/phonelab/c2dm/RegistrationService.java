@@ -57,10 +57,11 @@ public class RegistrationService extends IntentService {
 			JSONObject responseJ = new JSONObject(response);
 			SharedPreferences settings = getApplicationContext().getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
 			Editor editor = settings.edit();
-			if(responseJ.getString("error").equals("")) {//TODO shouldn't an error be logged?
+			if(responseJ.getString("error").equals("")) {
 				editor.putBoolean(Util.SHARED_PREFERENCES_SYNC_KEY, true);
 			} else {
 				editor.putBoolean(Util.SHARED_PREFERENCES_SYNC_KEY, false);
+				Log.e("PhoneLab-" + getClass().getSimpleName(), "Shared Preferences SYNC KEY Response Error");
 			}
 			//now commit changes to shared preferences
 			if (editor.commit()) {

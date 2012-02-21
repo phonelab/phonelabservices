@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
@@ -45,8 +44,6 @@ public class PhoneLabMainView extends Activity {
 	 * If there exist an already set up alarm, it will do nothing 
 	 */
 	private void reschedulePeriodicMonitoring() {
-		
-		//TODO didn't get why we need this.
 		
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Rescheduling periodic checking...");
 		AlarmManager mgr = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);

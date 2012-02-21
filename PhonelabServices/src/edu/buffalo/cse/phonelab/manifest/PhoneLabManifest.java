@@ -42,7 +42,6 @@ import android.util.Log;
  * This class handles the manifest operations.
  */
 public class PhoneLabManifest {
-	//TODO logs ? 
 	//TODO Async Thread for this ?
 	private Document document = null;
 	private XPath xpath = null;
@@ -50,9 +49,10 @@ public class PhoneLabManifest {
 	private Context context = null;
 
 	public PhoneLabManifest (String xmlFullPath, Context context) {
+		if(xmlFullPath == null || xmlFullPath == "" || context == null)
+			new Throwable("NullPointerException");
 		this.xmlFullPath = xmlFullPath;
 		this.context = context;
-		//TODO check if null or not
 	}
 	
 	@SuppressWarnings("unused") 

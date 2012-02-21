@@ -41,7 +41,6 @@ public class LoggerService extends Service {
 	private SharedPreferences settings;
 	private Editor editor;
 	boolean isFailed = false;
-	boolean mergeTxtDeleted = false; 
 	int transferedFileCounter = 0;  //temp global variables. check TODO
 
 	/**
@@ -260,7 +259,6 @@ public class LoggerService extends Service {
 
 	@Override
 	public IBinder onBind(Intent arg0) {
-		// TODO Auto-generated method stub. Any reason this ?? 
 		return mBinder;
 	}
 

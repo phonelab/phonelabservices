@@ -8,9 +8,6 @@ package edu.buffalo.cse.phonelab.manifest;
  * store all the details of the application.   
  */
 public class PhoneLabApplication {
-	/*
-	 * Getters and setters are public TODO should they be ?
-	 */
 	private String intentName;
 	private String packageName;
 	private String name;

@@ -388,7 +388,8 @@ public class MessageService extends IntentService {
 			return true;
 		} else {
 			Log.e("PhoneLab-" + getClass().getSimpleName(), "File at " + path + " couldn't be deleted");
-			if(file.isDirectory()){//Directories need to be empty
+			if(file.isDirectory()){
+				//Directories need to be empty
 				Log.e("PhoneLab-" + getClass().getSimpleName(),  path + " leads to a directory. Needs to be empty to be deleted.");
 			}
 			return false;

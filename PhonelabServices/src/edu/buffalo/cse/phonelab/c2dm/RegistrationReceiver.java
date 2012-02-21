@@ -43,7 +43,7 @@ public class RegistrationReceiver extends BroadcastReceiver {
 		} else if (registration != null) {// Send the registration ID to the 3rd party site that is sending the messages.
 			editor.putString(Util.SHARED_PREFERENCES_REG_ID_KEY, registration);
 			
-			Locks.acquireWakeLock(context); //TODO lock not released
+			Locks.acquireWakeLock(context);
 			
 			Intent regService = new Intent(context, RegistrationService.class);
 			regService.putExtra("device_id", Util.getDeviceId(context));

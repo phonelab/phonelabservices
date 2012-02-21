@@ -64,8 +64,6 @@ public class ApplicationList extends ListActivity {
 	
 
 	/**
-	 * TODO repetition. may be remove this?
-	 * 
 	 * Used to send manually start intents using android.intent.action.MAIN. 
 	 * @param app the phonelab Application
 	 * @param dbAdapter the hook to device database          
@@ -82,7 +80,7 @@ public class ApplicationList extends ListActivity {
 			startActivity(startAppIntent);
 		} catch( Exception e ) {
 			e.printStackTrace();
-			Log.w("PhoneLab-" + getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
+			Log.e("PhoneLab-" + getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
 		}
 	}
 }
