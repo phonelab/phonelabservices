@@ -80,7 +80,6 @@ public class MessageService extends IntentService {
 							try {
 								currentManifest.saveDocument();
 							} catch (TransformerException e) {
-								e.printStackTrace();
 								Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessageAndLocation());
 							}
 						} else {
@@ -103,15 +102,12 @@ public class MessageService extends IntentService {
 									try {
 										currentManifest2.saveDocument();
 									} catch (TransformerException te) {
-										te.printStackTrace();
 										Log.e("PhoneLab-" + getClass().getSimpleName(), te.getMessageAndLocation());
 									}
 								}
 							} catch (FileNotFoundException fnfe) {
-								fnfe.printStackTrace();
 								Log.e("PhoneLab-" + getClass().getSimpleName(), fnfe.getMessage());
 							} catch (IOException ioe) {
-								ioe.printStackTrace();
 								Log.e("PhoneLab-" + getClass().getSimpleName(), ioe.getMessage());
 							}
 						}
@@ -157,7 +153,6 @@ public class MessageService extends IntentService {
 						Log.w("PhoneLab-" + getClass().getSimpleName(), "No Status Monitoring Alarm is currently set");
 					}
 				} catch (Exception e) { 
-					e.printStackTrace();
 					Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 				}
 			} else if (message.equals("start_periodic_checking")) { // start checking
@@ -173,10 +168,8 @@ public class MessageService extends IntentService {
 				mgr.cancel(pending);				
 			}
 		} catch (JSONException jsone) {
-			jsone.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), "C2DM Message cannot be parsed to JSON object!");
 		} catch (Exception e) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 
 		}
@@ -193,7 +186,7 @@ public class MessageService extends IntentService {
 	private void handleNewManifest(PhoneLabManifest currentManifest) {
 		//Handle applications
 		try {
-			ArrayList<PhoneLabApplication> applications = currentManifest.getApplicationsByConstraints(null);
+		 ArrayList<PhoneLabApplication> applications = currentManifest.getApplicationsByConstraints(null);
 			for (PhoneLabApplication app:applications) {
 				if (app.getAction().equals("update")) {
 					if (!updateApplication(app)) {
@@ -210,7 +203,6 @@ public class MessageService extends IntentService {
 				} 
 			} 
 		} catch (XPathExpressionException e) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 		//Handle Status Monitor
@@ -220,7 +212,6 @@ public class MessageService extends IntentService {
 				startStatusMonitor();
 			}
 		} catch (XPathExpressionException e) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 	}
@@ -257,7 +248,6 @@ public class MessageService extends IntentService {
 				}
 			} 
 		} catch (XPathExpressionException e) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 		//Handle Status Monitor
@@ -278,14 +268,12 @@ public class MessageService extends IntentService {
 				try {
 					currentManifest.saveDocument();
 				} catch (TransformerException e) {
-					e.printStackTrace();
 					Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 				}
 
 				startStatusMonitor();
 			}
 		} catch (XPathExpressionException e) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 	}
@@ -331,10 +319,8 @@ public class MessageService extends IntentService {
 				buf_e.close();
 				process.waitFor();
 			} catch (IOException e) {
-				e.printStackTrace();
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			} catch (InterruptedException e) {
-				e.printStackTrace();
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 
@@ -358,19 +344,16 @@ public class MessageService extends IntentService {
 					try {
 						manifest.removeApplication(app.getPackageName());
 					} catch (XPathExpressionException e) {
-						e.printStackTrace();
 						Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 					}
 				}
 			} catch (XPathExpressionException e) {
-				e.printStackTrace();
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 
 			try {
 				manifest.saveDocument();
 			} catch (TransformerException e) {
-				e.printStackTrace();
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 		}
@@ -393,7 +376,6 @@ public class MessageService extends IntentService {
 				Log.e("PhoneLab-" + getClass().getSimpleName(),  path + " leads to a directory. Needs to be empty to be deleted.");
 			}
 			return false;
-			//TODO check for su  ? 
 		}
 	}
 
@@ -437,10 +419,8 @@ public class MessageService extends IntentService {
 				buf_e.close();
 				process.waitFor();
 			} catch (IOException e) {
-				e.printStackTrace();
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			} catch (InterruptedException e) {
-				e.printStackTrace();
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 
@@ -478,10 +458,8 @@ public class MessageService extends IntentService {
 
 			process.waitFor();
 		} catch (IOException e) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		} catch (InterruptedException e) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 
@@ -517,7 +495,6 @@ public class MessageService extends IntentService {
 				startAppIntent.addCategory(Intent.CATEGORY_LAUNCHER);
 				startActivity(startAppIntent);
 			} catch( Exception e ) {
-				e.printStackTrace();
 				Log.e("PhoneLab-" + getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
 			}
 		} else if (app.getType().equals("background")) {
@@ -544,7 +521,6 @@ public class MessageService extends IntentService {
 			stopAppIntent.addCategory(Intent.CATEGORY_LAUNCHER);
 			stopService(stopAppIntent);
 		} catch( Exception e ) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
 		}
 

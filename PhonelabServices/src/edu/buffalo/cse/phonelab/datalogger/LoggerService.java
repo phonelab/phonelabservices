@@ -101,7 +101,6 @@ public class LoggerService extends Service {
 		} else {
 			startLogcat();
 		}
-		//TODO No exceptions ?
 	}
 
 	/**
