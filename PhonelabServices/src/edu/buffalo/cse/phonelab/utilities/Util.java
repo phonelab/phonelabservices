@@ -24,7 +24,7 @@ public class Util {
 	
 	
 	public static final String MANIFEST_DOWNLOAD_URL = "http://107.20.190.88/manifest/";//url to download manifest
-	public static final String NEW_MANIFEST_DIR = "/sdcard/new_manifest.xml";//directory to download new manifest
+	public static final String NEW_MANIFEST_DIR = "/data/data/edu.buffalo.cse.phonelab.phonelabservices/files/new_manifest.xml";//directory to download new manifest
 	public static final String CURRENT_MANIFEST_DIR = "manifest.xml";//directory for current, latest manifest 
 	public static final String APP_DOWNLOAD_URL = "http://107.20.190.88/experiment/";//base url to download application 
 	public static final String MANIFEST_UPLOAD_URL = "http://50.19.247.145/phonelab/upload_manifest.php";
@@ -48,7 +48,7 @@ public class Util {
 	public final static String TAG = "LogService";
 	public final static int LOG_FILE_SIZE = 300;//KB
 	public final static int AUX_LOG_FILES = 20;
-	public final static String LOG_DIR = "log";
+	public final static String LOG_DIR = ".log";
 	public final static long THRESHOLD = 25;//KB
 	public final static String POST_URL = "http://107.20.190.88/log/";
 	

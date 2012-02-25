@@ -180,6 +180,17 @@ public class LoggerService extends Service {
 			return;
 		} else {
 			f.mkdirs();
+			Log.i("PhoneLab-" + getClass().getSimpleName(), "Changing Access to LOG_DIR");
+			try {
+				Process process = Runtime.getRuntime().exec("chown 1000:1000 " + f.getAbsolutePath() );
+				process.waitFor();
+				process = Runtime.getRuntime().exec("chmod 700 " + f.getAbsolutePath() );
+				process.waitFor();
+			} catch (IOException e) {
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+			} catch (InterruptedException e) {
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+			}
 		}
 	}
 
