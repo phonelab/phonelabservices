@@ -111,11 +111,13 @@ public class LoggerService extends Service {
 	private boolean logFileThreshold() {
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Checking Threshold");
 		File[] allFiles = new File(LOG_DIR).listFiles();
-		if (allFiles.length > 1) {
-			for(int i=0; i<allFiles.length; i++) {
-				String fileName = allFiles[i].getName();
-				if (fileName.startsWith("log.out.") || fileName.startsWith("1")) {
-					return true;
+		if (allFiles != null) {
+			if (allFiles.length > 1) {
+				for(int i=0; i<allFiles.length; i++) {
+					String fileName = allFiles[i].getName();
+					if (fileName.startsWith("log.out.") || fileName.startsWith("1")) {
+						return true;
+					}
 				}
 			}
 		}
