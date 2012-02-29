@@ -29,7 +29,7 @@ public class StatusMonitorSignal extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.i("PhoneLab-" + getClass().getSimpleName(), "Learning Signal Strength");
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Learning Signal Strgth");
 
 		Locks.acquireWakeLock(this);
 

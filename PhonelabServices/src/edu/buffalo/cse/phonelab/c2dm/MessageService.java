@@ -25,6 +25,8 @@ import android.app.IntentService;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.os.SystemClock;
@@ -164,6 +166,11 @@ public class MessageService extends IntentService {
 				Intent newIntent = new Intent(getApplicationContext(), PeriodicCheckReceiver.class);
 				PendingIntent pending = PendingIntent.getBroadcast(getApplicationContext(), 0, newIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 				mgr.cancel(pending);				
+			} else if (message.equals("remove_logcat_pid")) {//this will remove logcat pid from shared preferences, next time new one wil be created 
+				SharedPreferences settings = getApplicationContext().getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
+				Editor editor = settings.edit();
+				editor.putInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, -1);
+				editor.commit();
 			}
 		} catch (JSONException jsone) {
 			Log.e("PhoneLab-" + getClass().getSimpleName(), "C2DM Message cannot be parsed to JSON object!");

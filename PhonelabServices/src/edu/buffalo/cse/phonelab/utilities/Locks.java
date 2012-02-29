@@ -7,9 +7,9 @@ import android.os.PowerManager;
 import android.util.Log;
 
 public class Locks {
-	private static String TAG = "phonelab-Locks";
+	private static String TAG = "Locks";
 	private static final String LOCK_NAME_WAKE="edu.buffalo.cse.phonelab.utilites.Locks";
-	private static final String LOCK_NAME_WIFI="edu.buffalo.cse.phonelab.utilites.Locks";
+	private static final String LOCK_NAME_WIFI="edu.buffalo.cse.phonelab.utilites.Locks.wifi";
 	private static PowerManager.WakeLock lockWake = null;
 	private static WifiManager.WifiLock lockWifi = null;
 	
