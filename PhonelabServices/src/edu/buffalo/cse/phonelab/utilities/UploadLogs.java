@@ -40,6 +40,7 @@ public class UploadLogs extends Service {
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "OnStartCommand");
 		return START_STICKY;
 	}
 
