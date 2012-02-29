@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
+import android.content.Context;
 import android.util.Log;
 
 public class DownloadFile {
@@ -22,16 +23,21 @@ public class DownloadFile {
 	 * @param fileFullPath path to put downloaded file
 	 * @return true if successful, otherwise error
 	 */
-	public static boolean downloadToDirectory(String webUrl, String fileFullPath) {
+	public static boolean downloadToDirectory(Context context, String webUrl, String fileFullPath) {
 		try {
 			int BUFFER_SIZE = 1024;
 			URL url = new URL(webUrl);
-			File file = new File(fileFullPath);
 			long startTime = System.currentTimeMillis();
 			URLConnection ucon = url.openConnection();
 			InputStream is = ucon.getInputStream();
 			BufferedInputStream bis = new BufferedInputStream(is, BUFFER_SIZE);
-			FileOutputStream fos = new FileOutputStream(file);
+			FileOutputStream fos;
+			if (fileFullPath.equals("new_manifest.xml")) {
+				fos = context.openFileOutput(fileFullPath, Context.MODE_PRIVATE);
+			} else {
+				File file = new File(fileFullPath);
+				fos = new FileOutputStream(file);
+			}
 			/*
 			 * Read bytes to the Buffer until there is nothing more to read(-1).
 			 */
@@ -42,14 +48,14 @@ public class DownloadFile {
 				counter += current/1024;
 				fos.write(buf, 0, current);
 				current = bis.read(buf, 0, BUFFER_SIZE);
-				Log.i("PhoneLab-" + "edu.buffalo.cse.phonelab.controller", counter + " bytes downloaded");
+				Log.i("PhoneLab-" + "DownloadFile", counter + " bytes downloaded");
 			}
 			fos.close();
-			Log.i("PhoneLab-" + "edu.buffalo.cse.phonelab.controller", "Download completed in" + ((System.currentTimeMillis() - startTime) / 1000) + " sec");
+			Log.i("PhoneLab-" + "DownloadFile", "Download completed in" + ((System.currentTimeMillis() - startTime) / 1000) + " sec");
 
 			return true;
 		} catch (IOException e) {
-			Log.e("PhoneLab-" + "edu.buffalo.cse.phonelab.controller", "Download Failed! Error: " + e.toString());
+			Log.e("PhoneLab-" + "DownloadFile", "Download Failed! Error: " + e.toString());
 		}
 
 		return false;

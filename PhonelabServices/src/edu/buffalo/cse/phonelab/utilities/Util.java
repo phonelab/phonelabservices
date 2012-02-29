@@ -24,7 +24,7 @@ public class Util {
 	
 	
 	public static final String MANIFEST_DOWNLOAD_URL = "http://107.20.190.88/manifest/";//url to download manifest
-	public static final String NEW_MANIFEST_DIR = "/data/data/edue.toString().buffalo.cse.phonelab.phonelabservices/files/new_manifest.xml";//directory to download new manifest
+	public static final String NEW_MANIFEST_DIR = "new_manifest.xml";//directory to download new manifest
 	public static final String CURRENT_MANIFEST_DIR = "manifest.xml";//directory for current, latest manifest 
 	public static final String APP_DOWNLOAD_URL = "http://107.20.190.88/experiment/";//base url to download application 
 	public static final String MANIFEST_UPLOAD_URL = "http://50.19.247.145/phonelab/upload_manifest.php";

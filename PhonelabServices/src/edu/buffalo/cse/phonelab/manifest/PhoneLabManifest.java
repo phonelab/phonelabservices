@@ -6,7 +6,6 @@
 
 package edu.buffalo.cse.phonelab.manifest;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -408,26 +407,17 @@ public class PhoneLabManifest {
 		builderFactory.setNamespaceAware(true);
 		DocumentBuilder builder = builderFactory.newDocumentBuilder();
 
-		if (fileName.contains("new_manifest")) {
-			File file = new File(fileName);
-			if (file.exists()) {
-				Document document = builder.parse(file);
-				return document;
-			} else {
-				return null;
-			}
-		} else {
-			try {
-				FileInputStream fos = context.openFileInput(fileName);
-				Document document = builder.parse(fos);
-				fos.close();
-				return document;
-			} catch (Exception e) {
-				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
-			}
-
-			return null;
+		try {
+			FileInputStream fos = context.openFileInput(fileName);
+			Document document = builder.parse(fos);
+			fos.close();
+			return document;
+		} catch (Exception e) {
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 		}
+
+		return null;
+
 	}
 
 	/**
@@ -439,20 +429,15 @@ public class PhoneLabManifest {
 		Transformer transformer = tfactory.newTransformer();
 		DOMSource source = new DOMSource(document);
 
-		if (xmlFullPath.contains("new_manifest")) {
-			StreamResult result = new StreamResult(new File(xmlFullPath));
+		try {
+			FileOutputStream fos = context.openFileOutput(xmlFullPath, Context.MODE_PRIVATE);
+			StreamResult result = new StreamResult(fos);
 			transformer.transform(source, result);
-		} else {
-			try {
-				FileOutputStream fos = context.openFileOutput(xmlFullPath, Context.MODE_PRIVATE);
-				StreamResult result = new StreamResult(fos);
-				transformer.transform(source, result);
-				fos.close();
-			} catch (FileNotFoundException e) {
-				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
-			} catch (IOException e) {
-				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
-			}
+			fos.close();
+		} catch (FileNotFoundException e) {
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
+		} catch (IOException e) {
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 		}
 	}
 }

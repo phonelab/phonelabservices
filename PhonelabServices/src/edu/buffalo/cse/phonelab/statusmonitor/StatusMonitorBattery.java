@@ -33,7 +33,7 @@ public class StatusMonitorBattery extends Service {
 		timer.schedule(new TimerTask() {
 			public void run() {
 				StatusMonitorBattery.this.unregisterReceiver(myBatteryReceiver);
-				Log.w("PhoneLab-" + getClass().getSimpleName(), "Couldn't learn battery level");
+				Log.w("PhoneLab-" + "StatusMonitorLocation", "Couldn't learn battery level");
 				Locks.releaseWakeLock();
 				StatusMonitorBattery.this.stopSelf();
 			}
@@ -48,9 +48,9 @@ public class StatusMonitorBattery extends Service {
 					
 					int bLevel = arg1.getIntExtra("level", 0);
 					String batteryLevel = String.valueOf(bLevel);
-					Log.i("PhoneLab-" + getClass().getSimpleName(), "Battery_level: " + batteryLevel);
+					Log.i("PhoneLab-" + "StatusMonitorBattery", "Battery_level: " + batteryLevel);
 				} catch (Exception e) {
-					Log.e("PhoneLab-" + getClass().getSimpleName(),e.toString());
+					Log.e("PhoneLab-" + "StatusMonitorBattery",e.toString());
 				}
 
 				Locks.releaseWakeLock();

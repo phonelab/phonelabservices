@@ -9,7 +9,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,7 +71,7 @@ public class MessageService extends IntentService {
 			JSONObject jsonObject = new JSONObject(payload);
 			String message = (String) jsonObject.get("message");
 			if (message.equals("new_manifest")) {
-				if (DownloadFile.downloadToDirectory(Util.MANIFEST_DOWNLOAD_URL + Util.getDeviceId(this), Util.NEW_MANIFEST_DIR)) {
+				if (DownloadFile.downloadToDirectory(this, Util.MANIFEST_DOWNLOAD_URL + Util.getDeviceId(this), Util.NEW_MANIFEST_DIR)) {
 					PhoneLabManifest newManifest = new PhoneLabManifest(Util.NEW_MANIFEST_DIR, getApplicationContext());
 					if (newManifest.getManifest()) {
 						PhoneLabManifest currentManifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR, getApplicationContext());
@@ -86,8 +85,7 @@ public class MessageService extends IntentService {
 						} else {
 							try {
 								FileOutputStream fos = openFileOutput(Util.CURRENT_MANIFEST_DIR, Context.MODE_PRIVATE);
-								File newFile = new File(Util.NEW_MANIFEST_DIR);
-								InputStream newInputStream = new FileInputStream(newFile);
+								FileInputStream newInputStream = openFileInput(Util.NEW_MANIFEST_DIR);
 								byte[] buf = new byte[1024];
 								int len;
 								while ((len = newInputStream.read(buf)) > 0){
@@ -115,7 +113,7 @@ public class MessageService extends IntentService {
 					}
 
 					//Remove manifest from where it is downloaded
-					removeFile (Util.NEW_MANIFEST_DIR);
+					removeFileInternalStorage (Util.NEW_MANIFEST_DIR);
 				}
 			} else if (message.equals("get_device_info")) {
 				Intent registrationIntent = new Intent("com.google.android.c2dm.intent.REGISTER");
@@ -289,7 +287,7 @@ public class MessageService extends IntentService {
 	 * @return true if successful, otherwise false
 	 */
 	public boolean installApplication (PhoneLabApplication app) {
-		if (DownloadFile.downloadToDirectory(Util.APP_DOWNLOAD_URL + app.getDownload(), Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
+		if (DownloadFile.downloadToDirectory(this, Util.APP_DOWNLOAD_URL + app.getDownload(), Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "Installing " + app.getName() + " now...");
 			try {
 				Process process = Runtime.getRuntime().exec("pm install " + Environment.getExternalStorageDirectory() + "/" + app.getDownload());
@@ -366,6 +364,21 @@ public class MessageService extends IntentService {
 	
 	/**
 	 * Removes a file whose path is given.
+	 * @param fileName just the name of the file stored in internal storage 
+	 * @return true if success, false o.w
+	 */
+	private boolean removeFileInternalStorage (String fileName) {
+		if (this.deleteFile(fileName)) {
+			Log.i("PhoneLab-" + getClass().getSimpleName(), "File " + fileName + " deleted successfully");
+			return true;
+		} else {
+			Log.e("PhoneLab-" + getClass().getSimpleName(), "File " + fileName + " couldn't be deleted");
+			return false;
+		}
+	}
+	
+	/**
+	 * Removes a file whose path is given.
 	 * @param path to the file to be removed
 	 */
 	private boolean removeFile (String path) {
@@ -390,7 +403,7 @@ public class MessageService extends IntentService {
 	 * @return true if successful, otherwise false
 	 */
 	private boolean updateApplication(PhoneLabApplication app) {
-		if (DownloadFile.downloadToDirectory(Util.APP_DOWNLOAD_URL + app.getName() + ".apk", Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
+		if (DownloadFile.downloadToDirectory(this, Util.APP_DOWNLOAD_URL + app.getName() + ".apk", Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "Updating " + app.getName() + " now...");
 			try {
 				Process process = Runtime.getRuntime().exec("pm -r install " + Environment.getExternalStorageDirectory() + "/" + app.getDownload());
@@ -480,7 +493,7 @@ public class MessageService extends IntentService {
 		AlarmManager mgr = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
 		Intent newIntent = new Intent(getApplicationContext(), StatusMonitorReceiver.class);
 		PendingIntent pending = PendingIntent.getBroadcast(getApplicationContext(), 0, newIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-		mgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), pending);
+		mgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 10000, pending);
 	}
 
 	/**

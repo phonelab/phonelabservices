@@ -29,7 +29,7 @@ public class StatusMonitorSignal extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.i("PhoneLab-" + getClass().getSimpleName(), "Learning Signal Strgth");
+		Log.i("PhoneLab-" + "StatusMonitorLocation", "Learning Signal Strgth");
 
 		Locks.acquireWakeLock(this);
 
@@ -67,10 +67,10 @@ public class StatusMonitorSignal extends Service {
 							mStrength = Math.round((strength + 113f) / 2f);
 						}
 
-						Log.i("PhoneLab-" + getClass().getSimpleName(), "Signal_Strength: " + strength + " asu: " + mStrength);
+						Log.i("PhoneLab-" + "StatusMonitorSignal", "Signal_Strength: " + strength + " asu: " + mStrength);
 					}  
 				} catch (Exception e) {
-					Log.e(getClass().getSimpleName(),e.toString());
+					Log.e("PhoneLab-" + "StatusMonitorSignal",e.toString());
 				}
 
 				Locks.releaseWakeLock();

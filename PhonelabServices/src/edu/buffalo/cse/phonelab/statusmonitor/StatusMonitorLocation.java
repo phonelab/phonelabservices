@@ -40,7 +40,7 @@ public class StatusMonitorLocation extends Service {
 		timer.schedule(new TimerTask() {
 			public void run() {
 				locationManager.removeUpdates(locationListener);
-				Log.i("PhoneLab-" + getClass().getSimpleName(), "Couldn't learn location");
+				Log.i("PhoneLab-" + "StatusMonitorLocation", "Couldn't learn location");
 				Locks.releaseWakeLock();
 				StatusMonitorLocation.this.stopSelf();
 			}
@@ -56,7 +56,7 @@ public class StatusMonitorLocation extends Service {
 				if (location.getAccuracy() < 3000 && location.getTime() > System.currentTimeMillis() - 20000) {
 					locationManager.removeUpdates(this);
 					timer.cancel();
-					Log.i("PhoneLab-" + getClass().getSimpleName(),
+					Log.i("PhoneLab-" + "StatusMonitorLocation",
 							"Location_Latitude: "
 									+ location.getLatitude()
 									+ " Longitude: "
