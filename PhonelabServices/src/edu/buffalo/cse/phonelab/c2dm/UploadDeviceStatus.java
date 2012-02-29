@@ -69,7 +69,6 @@ public class UploadDeviceStatus {
 					Log.e("PhoneLab-" + getClass().getSimpleName(), "File not uploaded successfully :\n"+responseJ.getString("error"));
 				}
 		} catch (Exception e) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 	}
@@ -96,7 +95,6 @@ public class UploadDeviceStatus {
 					statParams.add(object);
 				}
 			} catch (XPathExpressionException e) {
-				e.printStackTrace();
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 		}
@@ -130,7 +128,6 @@ public class UploadDeviceStatus {
 					apps.add(object);
 				}
 			} catch (XPathExpressionException e) {
-				e.printStackTrace();
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 		}

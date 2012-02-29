@@ -207,7 +207,7 @@ public class LoggerService extends Service {
 				}
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			Log.e(getClass().getSimpleName(),e.getMessage());
 		}
 		// Check whether some processes were collected & Terminated is not contained
 		if(psString.length() > 0 && !psString.toString().matches("Terminated")) {
@@ -242,9 +242,9 @@ public class LoggerService extends Service {
 			editor.commit();
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "PID to db" + pid);
 		} catch (IOException e) {
-			e.printStackTrace();
+			Log.e(getClass().getSimpleName(),e.getMessage());
 		} catch (Exception e) {
-			e.printStackTrace();
+			Log.e(getClass().getSimpleName(),e.getMessage());
 		}
 	}
 

@@ -70,10 +70,8 @@ public class RegistrationService extends IntentService {
 				Log.e("PhoneLab-" + getClass().getSimpleName(), "Shared Preferences Settings couldn't be updated");
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		} catch (JSONException e) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 		

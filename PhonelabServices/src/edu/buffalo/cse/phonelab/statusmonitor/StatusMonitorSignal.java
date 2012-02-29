@@ -70,7 +70,7 @@ public class StatusMonitorSignal extends Service {
 						Log.i("PhoneLab-" + getClass().getSimpleName(), "Signal_Strength: " + strength + " asu: " + mStrength);
 					}  
 				} catch (Exception e) {
-					e.printStackTrace();
+					Log.e(getClass().getSimpleName(),e.getMessage());
 				}
 
 				Locks.releaseWakeLock();

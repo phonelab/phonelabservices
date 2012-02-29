@@ -45,7 +45,6 @@ public class ApplicationList extends ListActivity {
 				setListAdapter(adapter);
 			}
 		} catch (XPathExpressionException e) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 	}
@@ -79,7 +78,6 @@ public class ApplicationList extends ListActivity {
 			startAppIntent.addCategory(Intent.CATEGORY_LAUNCHER);
 			startActivity(startAppIntent);
 		} catch( Exception e ) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), "The package " + app.getPackageName() + " couldn't be found for the app : " + app.getName());
 		}
 	}

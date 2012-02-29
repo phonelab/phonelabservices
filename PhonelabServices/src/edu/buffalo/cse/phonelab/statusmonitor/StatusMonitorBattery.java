@@ -50,7 +50,7 @@ public class StatusMonitorBattery extends Service {
 					String batteryLevel = String.valueOf(bLevel);
 					Log.i("PhoneLab-" + getClass().getSimpleName(), "Battery_level: " + batteryLevel);
 				} catch (Exception e) {
-					e.printStackTrace();
+					Log.e(getClass().getSimpleName(),e.getMessage());
 				}
 
 				Locks.releaseWakeLock();

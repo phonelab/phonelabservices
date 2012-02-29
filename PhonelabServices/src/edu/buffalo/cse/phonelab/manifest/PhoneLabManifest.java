@@ -71,13 +71,10 @@ public class PhoneLabManifest {
 			if (document != null)
 				return true;
 		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		} catch (SAXException e) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		} catch (IOException e) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 
@@ -394,7 +391,6 @@ public class PhoneLabManifest {
 				document.getFirstChild().appendChild(newElement);
 			}
 		} catch (XPathExpressionException e) {
-			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 	}
@@ -427,7 +423,6 @@ public class PhoneLabManifest {
 				fos.close();
 				return document;
 			} catch (Exception e) {
-				e.printStackTrace();
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 
@@ -454,10 +449,8 @@ public class PhoneLabManifest {
 				transformer.transform(source, result);
 				fos.close();
 			} catch (FileNotFoundException e) {
-				e.printStackTrace();
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			} catch (IOException e) {
-				e.printStackTrace();
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 			}
 		}
