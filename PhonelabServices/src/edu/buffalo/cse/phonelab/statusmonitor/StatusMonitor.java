@@ -73,7 +73,7 @@ public class StatusMonitor extends Service {
 					}
 				}
 			} catch (XPathExpressionException e) {
-				Log.e(getClass().getSimpleName(),e.getMessage());
+				Log.e(getClass().getSimpleName(),e.toString());
 			}
 		}
 		

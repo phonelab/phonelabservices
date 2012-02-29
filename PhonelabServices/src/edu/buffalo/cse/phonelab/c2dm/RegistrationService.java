@@ -70,9 +70,9 @@ public class RegistrationService extends IntentService {
 				Log.e("PhoneLab-" + getClass().getSimpleName(), "Shared Preferences Settings couldn't be updated");
 			}
 		} catch (IOException e) {
-			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 		} catch (JSONException e) {
-			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 		}
 		
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "C2DM Registration Service is done!");

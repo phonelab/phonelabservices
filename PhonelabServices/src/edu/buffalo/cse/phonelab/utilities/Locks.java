@@ -40,7 +40,7 @@ public class Locks {
 					lockWake.release();
 				}
 			} catch (Exception e) {
-				Log.e("PhoneLab-" + Locks.class.getClass().getSimpleName(), e.getMessage());
+				Log.e("PhoneLab-" + Locks.class.getClass().getSimpleName(), e.toString());
 			}
 		}
 	}
@@ -62,7 +62,7 @@ public class Locks {
 					lockWifi.release();
 				}
 			} catch (Exception e) {
-				Log.e("PhoneLab-" + Locks.class.getClass().getSimpleName(), e.getMessage());
+				Log.e("PhoneLab-" + Locks.class.getClass().getSimpleName(), e.toString());
 			}
 		}
 	}

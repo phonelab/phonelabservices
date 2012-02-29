@@ -105,9 +105,9 @@ public class MessageService extends IntentService {
 									}
 								}
 							} catch (FileNotFoundException fnfe) {
-								Log.e("PhoneLab-" + getClass().getSimpleName(), fnfe.getMessage());
+								Log.e("PhoneLab-" + getClass().getSimpleName(), fnfe.toString());
 							} catch (IOException ioe) {
-								Log.e("PhoneLab-" + getClass().getSimpleName(), ioe.getMessage());
+								Log.e("PhoneLab-" + getClass().getSimpleName(), ioe.toString());
 							}
 						}
 					}
@@ -151,7 +151,7 @@ public class MessageService extends IntentService {
 						Log.w("PhoneLab-" + getClass().getSimpleName(), "No Status Monitoring Alarm is currently set");
 					}
 				} catch (Exception e) { 
-					Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+					Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 				}
 			} else if (message.equals("start_periodic_checking")) { // start checking
 				AlarmManager mgr = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
@@ -168,7 +168,7 @@ public class MessageService extends IntentService {
 		} catch (JSONException jsone) {
 			Log.e("PhoneLab-" + getClass().getSimpleName(), "C2DM Message cannot be parsed to JSON object!");
 		} catch (Exception e) {
-			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 
 		}
 
@@ -201,7 +201,7 @@ public class MessageService extends IntentService {
 				} 
 			} 
 		} catch (XPathExpressionException e) {
-			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 		}
 		//Handle Status Monitor
 		try {
@@ -210,7 +210,7 @@ public class MessageService extends IntentService {
 				startStatusMonitor();
 			}
 		} catch (XPathExpressionException e) {
-			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 		}
 	}
 
@@ -246,7 +246,7 @@ public class MessageService extends IntentService {
 				}
 			} 
 		} catch (XPathExpressionException e) {
-			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 		}
 		//Handle Status Monitor
 		try {
@@ -266,13 +266,13 @@ public class MessageService extends IntentService {
 				try {
 					currentManifest.saveDocument();
 				} catch (TransformerException e) {
-					Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+					Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 				}
 
 				startStatusMonitor();
 			}
 		} catch (XPathExpressionException e) {
-			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 		}
 	}
 
@@ -317,9 +317,9 @@ public class MessageService extends IntentService {
 				buf_e.close();
 				process.waitFor();
 			} catch (IOException e) {
-				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 			} catch (InterruptedException e) {
-				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 			}
 
 			//Remove .apk from where it is downloaded
@@ -342,17 +342,17 @@ public class MessageService extends IntentService {
 					try {
 						manifest.removeApplication(app.getPackageName());
 					} catch (XPathExpressionException e) {
-						Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+						Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 					}
 				}
 			} catch (XPathExpressionException e) {
-				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 			}
 
 			try {
 				manifest.saveDocument();
 			} catch (TransformerException e) {
-				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 			}
 		}
 	}
@@ -417,9 +417,9 @@ public class MessageService extends IntentService {
 				buf_e.close();
 				process.waitFor();
 			} catch (IOException e) {
-				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 			} catch (InterruptedException e) {
-				Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 			}
 
 			//Remove .apk from where it is downloaded
@@ -456,9 +456,9 @@ public class MessageService extends IntentService {
 
 			process.waitFor();
 		} catch (IOException e) {
-			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 		} catch (InterruptedException e) {
-			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 		}
 
 		return false;

@@ -45,7 +45,7 @@ public class ApplicationList extends ListActivity {
 				setListAdapter(adapter);
 			}
 		} catch (XPathExpressionException e) {
-			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 		}
 	}
 
