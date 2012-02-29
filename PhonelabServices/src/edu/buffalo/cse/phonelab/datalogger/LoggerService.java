@@ -2,11 +2,9 @@ package edu.buffalo.cse.phonelab.datalogger;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -21,11 +19,6 @@ import android.os.Binder;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
-
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
-
 import edu.buffalo.cse.phonelab.utilities.Util;
 
 /**
@@ -168,8 +161,6 @@ public class LoggerService extends Service {
 				}
 			} 
 		}
-
-		transferFiles();
 	}
 
 	/**
@@ -277,72 +268,6 @@ public class LoggerService extends Service {
 	public class LogBinder extends Binder {
 		LoggerService getService() {
 			return LoggerService.this;
-		}
-	}
-
-	/**
-	 * Method to initiate log transfers
-	 */
-	private void transferFiles () {
-		int transferedFileCounter = 0;
-		Log.i("PhoneLab-" + getClass().getSimpleName(), "Transfering files now...");
-		File[] allFiles = new File(LOG_DIR).listFiles();
-		if (allFiles.length > 1) {
-			for(int i=0; i < allFiles.length; i++) {
-				String fileName = allFiles[i].getName();
-				if (fileName.startsWith("1")) {
-					if (!isFailed) {
-						if (transferedFileCounter > 5) {
-							break;
-						}
-						transfer(fileName);
-						transferedFileCounter++;
-					} else {
-						break;
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Perform the file transfer to the server
-	 * @param fileName
-	 */
-	private void transfer(String fileName) {
-		final File f = new File(LOG_DIR + fileName);
-		AsyncHttpClient client = new AsyncHttpClient();
-		RequestParams params = new RequestParams();
-		try {
-			params.put("file", f);
-			params.put("filename", fileName);
-			client.post(Util.POST_URL + Util.getDeviceId(getApplicationContext()) + "/" , params, new AsyncHttpResponseHandler() {
-				@Override
-				public void onSuccess(String response) {
-					Date now = new Date();
-					editor.putLong(Util.SHARED_PREFERENCES_DATA_LOGGER_LAST_UPDATE_TIME, (System.currentTimeMillis()/1000 - ((now.getMinutes() * 60  + now.getSeconds()))));
-					editor.commit();
-
-					if (f.delete()) {
-						Log.i("PhoneLab-" + getClass().getSimpleName(), "" + f.getName() + " is deleted");
-					} else {
-						Log.w("PhoneLab-" + getClass().getSimpleName(), "" + f.getName() + " couldn't be deleted");
-					}
-					Log.i("PhoneLab-" + getClass().getSimpleName(), "Response " + response);
-				}
-
-				@Override
-				public void onFailure(Throwable e){
-					isFailed = true;
-					new Throwable(e); 
-					Log.e("PhoneLab-" + getClass().getSimpleName(), "Transfering " + f.getName() + " failed");
-				}
-			});
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			Log.e("PhoneLab-" + getClass().getSimpleName(), "Some other error occured");
-			e.printStackTrace();
 		}
 	}
 }

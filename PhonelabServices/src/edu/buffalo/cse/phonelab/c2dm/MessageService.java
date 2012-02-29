@@ -36,7 +36,6 @@ import edu.buffalo.cse.phonelab.phonelabservices.PeriodicCheckReceiver;
 import edu.buffalo.cse.phonelab.statusmonitor.StatusMonitorReceiver;
 import edu.buffalo.cse.phonelab.utilities.DownloadFile;
 import edu.buffalo.cse.phonelab.utilities.Locks;
-import edu.buffalo.cse.phonelab.utilities.UploadFile;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
 /**
@@ -127,8 +126,7 @@ public class MessageService extends IntentService {
 			} else if (message.equals("flash")) {
 
 			} else if (message.equals("upload_manifest")) { 	// Send updated manifest to the server
-				UploadFile uploadManifest = new UploadFile();
-				uploadManifest.upload(getApplicationContext(), Util.MANIFEST_UPLOAD_URL, Util.CURRENT_MANIFEST_DIR);
+				
 			} else if (message.equals("uninstall_all_apps")) {
 				uninstallAllApps();
 			} else if (message.equals("remove_manifest")) { 	// delete all apps and the manifest

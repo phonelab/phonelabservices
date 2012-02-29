@@ -4,10 +4,10 @@
 
 package edu.buffalo.cse.phonelab.statusmonitor;
 
-import edu.buffalo.cse.phonelab.utilities.Locks;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import edu.buffalo.cse.phonelab.utilities.Locks;
 
 public class StatusMonitorReceiver extends BroadcastReceiver {
 

@@ -39,6 +39,12 @@ public class PhoneLabMainView extends Activity {
 		startActivity(myIntent);
 	}
 	
+	public void showSettings (View view) {
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Settings will be shown");
+		Intent intent = new Intent(this, SettingsView.class);
+		startActivity(intent);
+	}
+	
 	/**
 	 * Internal method for setting an alarm to wake the service up after Util.PERIODIC_CHECK_INTERVAL amount 
 	 * If there exist an already set up alarm, it will do nothing 

@@ -65,6 +65,7 @@
         <receiver android:name="edu.buffalo.cse.phonelab.receivers.PowerOnReceiver">
             <intent-filter >
                 <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
+                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
             </intent-filter>
         </receiver>
         <service android:name="edu.buffalo.cse.phonelab.datalogger.LoggerService"></service>
@@ -72,6 +73,8 @@
         <receiver android:name="edu.buffalo.cse.phonelab.phonelabservices.PeriodicCheckReceiver"></receiver>
         <service android:name="edu.buffalo.cse.phonelab.phonelabservices.PeriodicCheckService"></service>
         <service android:name="edu.buffalo.cse.phonelab.statusmonitor.StatusMonitorLocation"></service>
+        <service android:name="edu.buffalo.cse.phonelab.utilities.UploadLogs"></service>
+        <activity android:name="SettingsView"></activity>
     </application>
 
 </manifest>

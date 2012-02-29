@@ -15,12 +15,14 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.os.SystemClock;
 import android.util.Log;
 import edu.buffalo.cse.phonelab.c2dm.RegistrationService;
 import edu.buffalo.cse.phonelab.datalogger.LoggerService;
 import edu.buffalo.cse.phonelab.statusmonitor.StatusMonitorReceiver;
 import edu.buffalo.cse.phonelab.utilities.Locks;
+import edu.buffalo.cse.phonelab.utilities.UploadLogs;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
 /**
@@ -74,6 +76,46 @@ public class PeriodicCheckService extends IntentService {
 			PendingIntent pending = PendingIntent.getBroadcast(getApplicationContext(), 0, newIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 			mgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), pending);
 		}
+		
+		
+		//Check connection and power for uploading log files
+		if (settings.getBoolean(Util.SHARED_PREFERENCES_SETTINGS_WIFI_FOR_LOG, false)) {
+			ConnectivityManager myConnManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+			if(myConnManager != null){
+				if(myConnManager.getActiveNetworkInfo() != null){
+					if(myConnManager.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_WIFI) {//wifi is connected
+						if (settings.getBoolean(Util.SHARED_PREFERENCES_SETTINGS_POWER_FOR_LOG, false)) {
+							if (settings.getBoolean(Util.SHARED_PREFERENCES_POWER_CONNECTED, false)) {//power is plugged in
+								//Start uploading logs
+								Locks.acquireWakeLock(this);
+								Intent uploadIntent = new Intent(this, UploadLogs.class);
+								startService(uploadIntent);
+							}
+						} else {
+							//Start uploading logs
+							Locks.acquireWakeLock(this);
+							Intent uploadIntent = new Intent(this, UploadLogs.class);
+							startService(uploadIntent);
+						}
+					}
+				}
+			}
+		} else {
+			if (settings.getBoolean(Util.SHARED_PREFERENCES_SETTINGS_POWER_FOR_LOG, false)) {
+				if (settings.getBoolean(Util.SHARED_PREFERENCES_POWER_CONNECTED, false)) {//power is plugged in
+					//Start uploading logs
+					Locks.acquireWakeLock(this);
+					Intent uploadIntent = new Intent(this, UploadLogs.class);
+					startService(uploadIntent);
+				}
+			} else {
+				//Start uploading logs
+				Locks.acquireWakeLock(this);
+				Intent uploadIntent = new Intent(this, UploadLogs.class);
+				startService(uploadIntent);
+			}
+		}
+		
 		//Reschedule
 		reschedulePeriodicChecking();
 

@@ -6,7 +6,6 @@ package edu.buffalo.cse.phonelab.statusmonitor;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import edu.buffalo.cse.phonelab.utilities.Locks;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -14,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
 import android.util.Log;
+import edu.buffalo.cse.phonelab.utilities.Locks;
 
 public class StatusMonitorBattery extends Service {
 

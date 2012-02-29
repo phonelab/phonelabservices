@@ -36,9 +36,12 @@ public class Util {
 	public static final String SHARED_PREFERENCES_SYNC_KEY = "is_synced";
 	public static final String SHARED_PREFERENCES_DATA_LOGGER_PID = "logcat_pid";
 	public static final String SHARED_PREFERENCES_DATA_LOGGER_LAST_UPDATE_TIME = "data_logger_last_updated";
+	public static final String SHARED_PREFERENCES_SETTINGS_WIFI_FOR_LOG = "log_wifi";
+	public static final String SHARED_PREFERENCES_SETTINGS_POWER_FOR_LOG = "log_power";
+	public static final String SHARED_PREFERENCES_POWER_CONNECTED = "power_connected";
 	
 	//Peridic Checks
-	public static final long PERIODIC_CHECK_INTERVAL = 300000;//5 minutes
+	public static final long PERIODIC_CHECK_INTERVAL = 30 * 60000;//5 minutes
 	
 	//C2DM
 	public static final String C2DM_EMAIL = "phone.lab.buffalo@gmail.com";

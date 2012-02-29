@@ -4,11 +4,11 @@
 
 package edu.buffalo.cse.phonelab.c2dm;
 
-import edu.buffalo.cse.phonelab.utilities.Locks;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import edu.buffalo.cse.phonelab.utilities.Locks;
 
 /**
  * @author Rishi .
