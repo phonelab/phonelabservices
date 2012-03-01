@@ -38,6 +38,13 @@
         android:text="@string/main_settings" android:onClick="showSettings"/>
 
     <Button
+        android:id="@+id/button4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="showLogs"
+        android:text="@string/main_logs" />
+
+    <Button
         android:id="@+id/button2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
