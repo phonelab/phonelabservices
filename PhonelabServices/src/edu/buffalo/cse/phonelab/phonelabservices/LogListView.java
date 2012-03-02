@@ -8,6 +8,7 @@ package edu.buffalo.cse.phonelab.phonelabservices;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.util.Date;
 
 import android.app.ListActivity;
 import android.os.Bundle;
@@ -21,7 +22,7 @@ import edu.buffalo.cse.phonelab.utilities.Util;
 public class LogListView extends ListActivity {
 	private final String LOG_DIR = Environment.getExternalStorageDirectory() + "/" + Util.LOG_DIR + "/";
 	private String[] values;
-	
+	private String[] values2;
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -42,11 +43,15 @@ public class LogListView extends ListActivity {
 		if (allFiles != null && allFiles.length > 0) {
 			Log.i("PhoneLab-" + getClass().getSimpleName(), allFiles.length + " found");
 			values = new String[allFiles.length];
-			String[] values2 = new String[allFiles.length];
+			values2 = new String[allFiles.length];
 			for (int i=0;i < allFiles.length;i++) {
 				String fileName = allFiles[i].getName();
 				values[i] = fileName;
-				values2[i] = "";
+				try {
+					values2[i] = "" + new Date(Long.parseLong(fileName.substring(0, fileName.indexOf("."))));
+				} catch (Exception e) {
+					values2[i] = "";
+				}
 			}
 			ApplicationListArrayAdapter adapter = new ApplicationListArrayAdapter(this, values, values2);
 			setListAdapter(adapter);
