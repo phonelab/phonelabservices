@@ -78,7 +78,14 @@ public class StatusMonitorLocation extends Service {
 		};
 
 		// Register the listener with the Location Manager to receive location updates
-		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+		try {
+			locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+		} catch (Exception e) {
+			Log.e("PhoneLab-" + "StatusMonitorLocation", "Network Location Provider is not available");
+			timer.cancel();
+			Locks.releaseWakeLock();
+			stopSelf();
+		}
 
 		return START_STICKY;
 	}
