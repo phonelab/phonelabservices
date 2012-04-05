@@ -30,6 +30,7 @@ public class Util {
 	public static final String MANIFEST_UPLOAD_URL = "http://50.19.247.145/phonelab/upload_manifest.php";
 	public static final String DEVICE_STATUS_UPLOAD_URL = "http://107.20.190.88/devicestatus/";
 	public static final String URLTOUPLOAD = "http://107.20.190.88/device/";
+	public static final String APPLICATION_ACTION_SUCCESS_URL = "http://107.20.190.88/deviceapplication/";
 	
 	public static final String SHARED_PREFERENCES_FILE_NAME = "phonelab_settings";
 	public static final String SHARED_PREFERENCES_REG_ID_KEY = "reg_id";

@@ -36,6 +36,7 @@ import edu.buffalo.cse.phonelab.manifest.PhoneLabParameter;
 import edu.buffalo.cse.phonelab.phonelabservices.PeriodicCheckReceiver;
 import edu.buffalo.cse.phonelab.statusmonitor.StatusMonitorReceiver;
 import edu.buffalo.cse.phonelab.utilities.DownloadFile;
+import edu.buffalo.cse.phonelab.utilities.InformServer;
 import edu.buffalo.cse.phonelab.utilities.Locks;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
@@ -371,6 +372,7 @@ public class MessageService extends IntentService {
 
 						//Remove .apk from where it is downloaded
 						removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+						InformServer.installSuccessMessage(getApplicationContext(), app.getPackageName());
 						return true;
 					}
 				}
@@ -424,6 +426,7 @@ public class MessageService extends IntentService {
 
 						//Remove .apk from where it is downloaded
 						removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+						InformServer.installSuccessMessage(getApplicationContext(), app.getPackageName());
 						return true;
 					}
 				}
@@ -466,6 +469,7 @@ public class MessageService extends IntentService {
 					//Success to uninstall APK
 					new Util().nofityUser(this, "PhoneLab", app.getName() + " is uninstalled");
 					Log.i("PhoneLab-" + getClass().getSimpleName(), app.getName() + " uninstalled successfully");
+					InformServer.uninstallSuccessMessage(getApplicationContext(), app.getPackageName());
 					return true;
 
 				} else {

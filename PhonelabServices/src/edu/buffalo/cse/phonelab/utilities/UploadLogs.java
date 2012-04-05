@@ -107,7 +107,7 @@ public class UploadLogs extends Service {
 		} catch (FileNotFoundException e) {
 			Log.e("PhoneLab-" + getClass().getSimpleName(), "File not found");
 		} catch (Exception e) {
-			Log.e("PhoneLab-" + getClass().getSimpleName(), "Some other error occured");
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
 		}
 	}
 }
