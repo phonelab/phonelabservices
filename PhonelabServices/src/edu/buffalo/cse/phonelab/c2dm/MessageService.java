@@ -281,61 +281,9 @@ public class MessageService extends IntentService {
 		}
 	}
 
-	/**
-	 * This method install a new application to the phone
-	 * @param app PhoneLabApplication to install
-	 * @return true if successful, otherwise false
-	 */
-	public boolean installApplication (PhoneLabApplication app) {
-		if (DownloadFile.downloadToDirectory(this, Util.APP_DOWNLOAD_URL + app.getDownload(), Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
-			Log.i("PhoneLab-" + getClass().getSimpleName(), "Installing " + app.getName() + " now...");
-			try {
-				Process process = Runtime.getRuntime().exec("pm install " + Environment.getExternalStorageDirectory() + "/" + app.getDownload());
-
-				String line = null;
-				//Success to install APK
-				BufferedReader buf_i = new BufferedReader(new InputStreamReader(process.getInputStream()));
-				BufferedReader buf_e = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-				while((line = buf_i.readLine()) != null){
-					if(line.compareTo("Success") == 0){
-						if (app.getType().equals("background")) {//start it in the background
-							startingapplication(app);
-						} else if (app.getType().equals("interactive")) {//notify user
-							new Util().nofityUser(this, "PhoneLab", "" + app.getName() + " is installed on your device");
-						}
-						Log.i("PhoneLab-" + getClass().getSimpleName(), app.getName() + " installed successfully");
-
-						//Remove .apk from where it is downloaded
-						removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
-						return true;
-					}
-				}
-				buf_i.close();
-
-				//failure to install APK
-				while((line = buf_e.readLine()) != null){
-					if(line.split(" ")[0].compareTo("Failure") == 0){
-						Log.wtf("PhoneLab-" + getClass().getSimpleName(), app.getName() + " couldn't be installed");
-					}
-				}
-
-				buf_e.close();
-				process.waitFor();
-			} catch (IOException e) {
-				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
-			} catch (InterruptedException e) {
-				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
-			}
-
-			//Remove .apk from where it is downloaded
-			removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
-		}
-
-		return false;
-	}
 
 	/**
-	 * This method will un-install all the applications from both manifest and device
+	 * This method will uninstall all the applications from both manifest and device
 	 */
 	private void uninstallAllApps() {
 		PhoneLabManifest manifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR, getApplicationContext());
@@ -395,6 +343,59 @@ public class MessageService extends IntentService {
 			}
 			return false;
 		}
+	}
+	
+	/**
+	 * This method install a new application to the phone
+	 * @param app PhoneLabApplication to install
+	 * @return true if successful, otherwise false
+	 */
+	private boolean installApplication (PhoneLabApplication app) {
+		if (DownloadFile.downloadToDirectory(this, Util.APP_DOWNLOAD_URL + app.getDownload(), Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
+			Log.i("PhoneLab-" + getClass().getSimpleName(), "Installing " + app.getName() + " now...");
+			try {
+				Process process = Runtime.getRuntime().exec("pm install " + Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+
+				String line = null;
+				//Success to install APK
+				BufferedReader buf_i = new BufferedReader(new InputStreamReader(process.getInputStream()));
+				BufferedReader buf_e = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+				while((line = buf_i.readLine()) != null){
+					if(line.compareTo("Success") == 0){
+						if (app.getType().equals("background")) {//start it in the background
+							startingapplication(app);
+						} else if (app.getType().equals("interactive")) {//notify user
+							new Util().nofityUser(this, "PhoneLab", "" + app.getName() + " is installed on your device");
+						}
+						Log.i("PhoneLab-" + getClass().getSimpleName(), app.getName() + " installed successfully");
+
+						//Remove .apk from where it is downloaded
+						removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+						return true;
+					}
+				}
+				buf_i.close();
+
+				//failure to install APK
+				while((line = buf_e.readLine()) != null){
+					if(line.split(" ")[0].compareTo("Failure") == 0){
+						Log.wtf("PhoneLab-" + getClass().getSimpleName(), app.getName() + " couldn't be installed");
+					}
+				}
+
+				buf_e.close();
+				process.waitFor();
+			} catch (IOException e) {
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
+			} catch (InterruptedException e) {
+				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
+			}
+
+			//Remove .apk from where it is downloaded
+			removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+		}
+
+		return false;
 	}
 
 	/**
