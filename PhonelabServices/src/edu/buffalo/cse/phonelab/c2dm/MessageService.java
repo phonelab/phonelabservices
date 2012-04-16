@@ -1,6 +1,17 @@
 /**
- * @author fatih
+ * @author fatih and rishi
+ * 
+ * Processes the received message and performs actions accordingly. 
+ * Actions involve :
+ * 		Merge New Manifest File
+ * 		Download / Install Apps
+ * 		Uninstall Apps (with App data)
+ * 		Update Apps
+ * 		Start Apps
+ * 		Stop Apps
+ * 		Start Status Monitor
  */
+
 package edu.buffalo.cse.phonelab.c2dm;
 
 import java.io.BufferedReader;
@@ -40,19 +51,6 @@ import edu.buffalo.cse.phonelab.utilities.InformServer;
 import edu.buffalo.cse.phonelab.utilities.Locks;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
-/**
- * @author rishi
- * 
- * Processes the received message and performs actions accordingly. 
- * Actions involve :
- * 		Merge New Manifest File
- * 		Download / Install Apps
- * 		Uninstall Apps (with App data)
- * 		Update Apps
- * 		Start Apps
- * 		Stop Apps
- * 		Start Status Monitor
- */
 public class MessageService extends IntentService {
 	
 	/**

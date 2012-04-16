@@ -16,7 +16,7 @@ import android.util.Log;
 public class InformServer {
 	
 	final static private String devId = "dev_id";
-	final static private String applicationId = "application_id";
+	final static private String applicationId = "app_id";
 	final static private String action = "action";
 	final static private String install = "I";
 	final static private String uninstall = "U";
@@ -59,6 +59,6 @@ public class InformServer {
 		} catch (Exception e) {
 			Log.e("PhoneLab-" + InformServer.class.getClass().getSimpleName(), e.getMessage());
 		}
-		
 	}
 }
+
