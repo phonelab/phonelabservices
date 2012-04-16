@@ -8,6 +8,7 @@ package edu.buffalo.cse.phonelab.manifest;
  * store all the details of the application.   
  */
 public class PhoneLabApplication {
+	private String AppID;
 	private String intentName;
 	private String packageName;
 	private String name;
@@ -20,6 +21,12 @@ public class PhoneLabApplication {
 	private String startTime;
 	private String endTime;
 	
+	public String getAppID() {
+		return AppID;
+	}
+	public void setAppID(String appID) {
+		AppID = appID;
+	}
 	public String getIntentName() {
 		return intentName;
 	}

@@ -306,7 +306,9 @@ public class PhoneLabManifest {
 		NamedNodeMap map = element.getAttributes();
 		for (int i=0;i < map.getLength();i++) {
 			Node attr =  map.item(i);
-			if (attr.getNodeName().equals("intent_name")) {
+			if (attr.getNodeName().equals("application id")) {
+				app.setAppID(attr.getNodeValue());
+			} else if (attr.getNodeName().equals("intent_name")) {
 				app.setIntentName(attr.getNodeValue());
 			} else if (attr.getNodeName().equals("package_name")) {
 				app.setPackageName(attr.getNodeValue());
@@ -337,6 +339,8 @@ public class PhoneLabManifest {
 	 */
 	public void addApplication (PhoneLabApplication app) {
 		Element newElement = document.createElement("application");
+		if(app.getAppID() != null)
+			newElement.setAttribute("application_id", app.getAppID());
 		if (app.getPackageName() != null)
 			newElement.setAttribute("package_name", app.getPackageName());
 		if (app.getName() != null)
@@ -369,6 +373,8 @@ public class PhoneLabManifest {
 				Node parentNode = node.getParentNode();
 				parentNode.removeChild(node);
 				Element newElement = document.createElement("application");
+				if(app.getAppID() != null)
+					newElement.setAttribute("application_id", app.getAppID());
 				if (app.getPackageName() != null)
 					newElement.setAttribute("package_name", app.getPackageName());
 				if (app.getName() != null)

@@ -372,7 +372,7 @@ public class MessageService extends IntentService {
 
 						//Remove .apk from where it is downloaded
 						removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
-						InformServer.installSuccessMessage(getApplicationContext(), app.getPackageName());
+						InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.INSTALL,InformServer.SUCCESS);
 						return true;
 					}
 				}
@@ -382,6 +382,7 @@ public class MessageService extends IntentService {
 				while((line = buf_e.readLine()) != null){
 					if(line.split(" ")[0].compareTo("Failure") == 0){
 						Log.wtf("PhoneLab-" + getClass().getSimpleName(), app.getName() + " couldn't be installed");
+						InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.INSTALL,InformServer.FAILURE);
 					}
 				}
 
@@ -389,8 +390,10 @@ public class MessageService extends IntentService {
 				process.waitFor();
 			} catch (IOException e) {
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
+				InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.INSTALL,InformServer.FAILURE);
 			} catch (InterruptedException e) {
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
+				InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.INSTALL,InformServer.FAILURE);
 			}
 
 			//Remove .apk from where it is downloaded
@@ -426,7 +429,7 @@ public class MessageService extends IntentService {
 
 						//Remove .apk from where it is downloaded
 						removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
-						InformServer.installSuccessMessage(getApplicationContext(), app.getPackageName());
+						InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.INSTALL,InformServer.SUCCESS);
 						return true;
 					}
 				}
@@ -436,14 +439,18 @@ public class MessageService extends IntentService {
 				while((line = buf_e.readLine()) != null){
 					if(line.split(" ")[0].compareTo("Failure") == 0){
 						Log.e("PhoneLab-" + getClass().getSimpleName(), app.getName() + " couldn't be updated");
+						InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.INSTALL,InformServer.FAILURE);
+
 					}
 				}
 				buf_e.close();
 				process.waitFor();
 			} catch (IOException e) {
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
+				InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.INSTALL,InformServer.FAILURE);
 			} catch (InterruptedException e) {
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
+				InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.INSTALL,InformServer.FAILURE);
 			}
 
 			//Remove .apk from where it is downloaded
@@ -469,12 +476,13 @@ public class MessageService extends IntentService {
 					//Success to uninstall APK
 					new Util().nofityUser(this, "PhoneLab", app.getName() + " is uninstalled");
 					Log.i("PhoneLab-" + getClass().getSimpleName(), app.getName() + " uninstalled successfully");
-					InformServer.uninstallSuccessMessage(getApplicationContext(), app.getPackageName());
+					InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.UNINSTALL,InformServer.SUCCESS);
 					return true;
 
 				} else {
 					//failure to uninstall APK
 					Log.e("PhoneLab-" + getClass().getSimpleName(), app.getName() + " couldn't be uninstalled");
+					InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.UNINSTALL,InformServer.FAILURE);
 				}
 			}
 			buf_i.close();
@@ -482,8 +490,10 @@ public class MessageService extends IntentService {
 			process.waitFor();
 		} catch (IOException e) {
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
+			InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.UNINSTALL,InformServer.FAILURE);
 		} catch (InterruptedException e) {
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
+			InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.UNINSTALL,InformServer.FAILURE);
 		}
 
 		return false;
