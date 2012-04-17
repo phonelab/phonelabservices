@@ -195,7 +195,7 @@ public class MessageService extends IntentService {
 						currentManifest.removeApplication(app.getPackageName());
 					}
 				} else if (app.getAction().equals("uninstall")) {
-					if (!removeapplication(app)) {
+					if (removeapplication(app)) {
 						currentManifest.removeApplication(app.getPackageName());
 					}
 				} else if (app.getAction().equals("install")) {
@@ -350,10 +350,10 @@ public class MessageService extends IntentService {
 	 * @return true if successful, otherwise false
 	 */
 	private boolean installApplication (PhoneLabApplication app) {
-		if (DownloadFile.downloadToDirectory(this, Util.APP_DOWNLOAD_URL + app.getDownload(), Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
+		if (DownloadFile.downloadToDirectory(this, Util.APP_DOWNLOAD_URL + app.getAppID() + ".apk", Environment.getExternalStorageDirectory() + "/" + app.getAppID())) {
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "Installing " + app.getName() + " now...");
 			try {
-				Process process = Runtime.getRuntime().exec("pm install " + Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+				Process process = Runtime.getRuntime().exec("pm install " + Environment.getExternalStorageDirectory() + "/" + app.getAppID());
 
 				String line = null;
 				//Success to install APK
@@ -369,7 +369,7 @@ public class MessageService extends IntentService {
 						Log.i("PhoneLab-" + getClass().getSimpleName(), app.getName() + " installed successfully");
 
 						//Remove .apk from where it is downloaded
-						removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+						removeFile (Environment.getExternalStorageDirectory() + "/" + app.getAppID());
 						InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.INSTALL,InformServer.SUCCESS);
 						return true;
 					}
@@ -395,7 +395,10 @@ public class MessageService extends IntentService {
 			}
 
 			//Remove .apk from where it is downloaded
-			removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+			removeFile (Environment.getExternalStorageDirectory() + "/" + app.getAppID());
+		} else {
+			Log.e("PhoneLab-" + getClass().getSimpleName(), "Download .apk failed");
+			InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.INSTALL,InformServer.FAILURE);
 		}
 
 		return false;
@@ -407,10 +410,10 @@ public class MessageService extends IntentService {
 	 * @return true if successful, otherwise false
 	 */
 	private boolean updateApplication(PhoneLabApplication app) {
-		if (DownloadFile.downloadToDirectory(this, Util.APP_DOWNLOAD_URL + app.getName() + ".apk", Environment.getExternalStorageDirectory() + "/" + app.getDownload())) {
+		if (DownloadFile.downloadToDirectory(this, Util.APP_DOWNLOAD_URL + app.getName() + ".apk", Environment.getExternalStorageDirectory() + "/" + app.getAppID())) {
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "Updating " + app.getName() + " now...");
 			try {
-				Process process = Runtime.getRuntime().exec("pm -r install " + Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+				Process process = Runtime.getRuntime().exec("pm -r install " + Environment.getExternalStorageDirectory() + "/" + app.getAppID());
 
 				String line = null;
 				//Success to install APK
@@ -426,7 +429,7 @@ public class MessageService extends IntentService {
 						Log.i("PhoneLab-" + getClass().getSimpleName(), app.getName() + " updated successfully");
 
 						//Remove .apk from where it is downloaded
-						removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+						removeFile (Environment.getExternalStorageDirectory() + "/" + app.getAppID());
 						InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.INSTALL,InformServer.SUCCESS);
 						return true;
 					}
@@ -452,7 +455,10 @@ public class MessageService extends IntentService {
 			}
 
 			//Remove .apk from where it is downloaded
-			removeFile (Environment.getExternalStorageDirectory() + "/" + app.getDownload());
+			removeFile (Environment.getExternalStorageDirectory() + "/" + app.getAppID());
+		} else {
+			Log.e("PhoneLab-" + getClass().getSimpleName(), "Download .apk failed");
+			InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.INSTALL,InformServer.FAILURE);
 		}
 
 		return false;

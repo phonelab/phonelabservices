@@ -25,6 +25,7 @@ public class DownloadFile {
 	 */
 	public static boolean downloadToDirectory(Context context, String webUrl, String fileFullPath) {
 		try {
+			Log.i("URLs", "webUrl: " + webUrl + "\n Path: " + fileFullPath);
 			int BUFFER_SIZE = 1024;
 			URL url = new URL(webUrl);
 			long startTime = System.currentTimeMillis();
@@ -48,7 +49,7 @@ public class DownloadFile {
 				counter += current/1024;
 				fos.write(buf, 0, current);
 				current = bis.read(buf, 0, BUFFER_SIZE);
-				Log.i("PhoneLab-" + "DownloadFile", counter + " bytes downloaded");
+				//Log.i("PhoneLab-" + "DownloadFile", counter + " bytes downloaded");
 			}
 			fos.close();
 			Log.i("PhoneLab-" + "DownloadFile", "Download completed in" + ((System.currentTimeMillis() - startTime) / 1000) + " sec");
