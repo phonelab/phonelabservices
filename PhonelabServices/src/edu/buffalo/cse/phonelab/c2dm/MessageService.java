@@ -240,12 +240,16 @@ public class MessageService extends IntentService {
 						if (removeapplication(app)) {
 							currentManifest.removeApplication(app.getPackageName());
 						}
-					} 
+					} else if (app.getAction().equals("install")) {
+						InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.INSTALL,InformServer.FAILUREALREADYINSTALLED);
+					}
 				} else {//No such app exists, must be install
 					if (app.getAction().equals("install")) {
 						if (installApplication(app)) {
 							currentManifest.addApplication(app);
 						}
+					} if (app.getAction().equals("uninstall")) {
+						InformServer.sendMessage(getApplicationContext(), app.getAppID(),InformServer.INSTALL,InformServer.FAILURENOSUCHAPP);
 					}
 				}
 			} 

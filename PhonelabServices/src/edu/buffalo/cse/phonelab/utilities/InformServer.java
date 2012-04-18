@@ -31,11 +31,16 @@ public class InformServer {
 	final static private String result = "result";
 	final static private String success = "S";
 	final static private String failure = "F";
+	final static private String failureAlreadyInstalled = "F1";
+	final static private String failureNoSuchApplication = "F2";
+	
 
 	final static public int INSTALL = 1;
 	final static public int UNINSTALL = 2;
 	final static public int SUCCESS = 1;
 	final static public int FAILURE = 2;
+	final static public int FAILUREALREADYINSTALLED = 3;
+	final static public int FAILURENOSUCHAPP = 4;
 
 	public static void sendMessage(Context context, final String AppId,int actionCommand, int resultCommand) { // TODO better name than done
 
@@ -92,6 +97,12 @@ public class InformServer {
 			else if (resultCommand == FAILURE) {
 				nameValuePairs.add(new BasicNameValuePair(result, failure));
 				Log.i ("PhoneLab-" + InformServer.class.getClass().getSimpleName(), "Result: F");
+			} else if (resultCommand == FAILUREALREADYINSTALLED) {
+				nameValuePairs.add(new BasicNameValuePair(result, failureAlreadyInstalled));
+				Log.i ("PhoneLab-" + InformServer.class.getClass().getSimpleName(), "Result: F1");
+			} else if (resultCommand == FAILURENOSUCHAPP) {
+				nameValuePairs.add(new BasicNameValuePair(result, failureNoSuchApplication));
+				Log.i ("PhoneLab-" + InformServer.class.getClass().getSimpleName(), "Result: F2");
 			}
 			
 			httpost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
