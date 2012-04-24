@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest package="edu.buffalo.cse.phonelab.phonelabservices"
-    android:versionCode="2"
-    android:versionName="1.0.1" xmlns:android="http://schemas.android.com/apk/res/android">
+    android:versionCode="1"
+    android:versionName="1" xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-sdk android:minSdkVersion="8" />
 
@@ -20,6 +20,7 @@
  	<uses-permission android:name="android.permission.WAKE_LOCK"/>
  	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
  	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+ 	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 
     <application
         android:icon="@drawable/ic_launcher"

@@ -13,16 +13,6 @@ import edu.buffalo.cse.phonelab.phonelabservices.PhoneLabMainView;
 import edu.buffalo.cse.phonelab.phonelabservices.R;
 
 public class Util {
-
-	/*public static final String MANIFEST_DOWNLOAD_URL = "http://50.19.247.145/phonelab/server/new_manifest.xml";//url to download manifest
-	public static final String NEW_MANIFEST_DIR = "/sdcard/new_manifest.xml";//directory to download new manifest
-	public static final String CURRENT_MANIFEST_DIR = "manifest.xml";//directory for current, latest manifest 
-	public static final String APP_DOWNLOAD_URL = "http://50.19.247.145/phonelab/server/";//base url to download application 
-	public static final String MANIFEST_UPLOAD_URL = "http://50.19.247.145/phonelab/upload_manifest.php";
-	public static final String DEVICE_STATUS_UPLOAD_URL = "http://50.19.247.145/phonelab/device_status_upload.php";
-	*/
-	
-	
 	public static final String MANIFEST_DOWNLOAD_URL = "http://107.20.190.88/manifest/";//url to download manifest
 	public static final String NEW_MANIFEST_DIR = "new_manifest.xml";//directory to download new manifest
 	public static final String CURRENT_MANIFEST_DIR = "manifest.xml";//directory for current, latest manifest 
@@ -40,6 +30,7 @@ public class Util {
 	public static final String SHARED_PREFERENCES_SETTINGS_WIFI_FOR_LOG = "log_wifi";
 	public static final String SHARED_PREFERENCES_SETTINGS_POWER_FOR_LOG = "log_power";
 	public static final String SHARED_PREFERENCES_POWER_CONNECTED = "power_connected";
+	public static final String SHARED_PREFERENCES_LOCATION_SOURCE = "location_source";//possible values: network, gps, both
 	
 	//Peridic Checks
 	public static final long PERIODIC_CHECK_INTERVAL = 30 * 60000;//5 minutes

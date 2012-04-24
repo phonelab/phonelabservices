@@ -62,9 +62,7 @@ public class MessageService extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "C2DM Message Service is started!");
-
 		String payload = intent.getExtras().getString("payload");
 		try {
 			JSONObject jsonObject = new JSONObject(payload);
@@ -83,17 +81,7 @@ public class MessageService extends IntentService {
 							}
 						} else {
 							try {
-								FileOutputStream fos = openFileOutput(Util.CURRENT_MANIFEST_DIR, Context.MODE_PRIVATE);
-								FileInputStream newInputStream = openFileInput(Util.NEW_MANIFEST_DIR);
-								byte[] buf = new byte[1024];
-								int len;
-								while ((len = newInputStream.read(buf)) > 0){
-									fos.write(buf, 0, len);
-								}
-								newInputStream.close();
-								fos.close();
-
-								Log.i("PhoneLab-" + getClass().getSimpleName(), "New manifest transfered to Current manifest!");
+								renameNewManifest();
 								PhoneLabManifest currentManifest2 = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR, getApplicationContext());
 								if (currentManifest2.getManifest()) {
 									handleNewManifest(currentManifest2);
@@ -168,6 +156,13 @@ public class MessageService extends IntentService {
 				Editor editor = settings.edit();
 				editor.putInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, -1);
 				editor.commit();
+			} else if (message.equals("set_status_monitor_location_provider")) {
+				JSONObject metadata = jsonObject.getJSONObject("metadata");
+				String type = metadata.getString("type");//location type: network, gps, both
+				SharedPreferences settings = getApplicationContext().getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
+				Editor editor = settings.edit();
+				editor.putString(Util.SHARED_PREFERENCES_LOCATION_SOURCE, type);
+				editor.commit();
 			}
 		} catch (JSONException jsone) {
 			Log.e("PhoneLab-" + getClass().getSimpleName(), "C2DM Message cannot be parsed to JSON object!");
@@ -179,6 +174,24 @@ public class MessageService extends IntentService {
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "C2DM Message Service is done!");
 		
 		Locks.releaseWakeLock();
+	}
+
+	/**
+	 * @throws IOException 
+	 * Rename new manifest to manifest.xml
+	 */
+	private void renameNewManifest() throws IOException {
+		FileOutputStream fos = openFileOutput(Util.CURRENT_MANIFEST_DIR, Context.MODE_PRIVATE);
+		FileInputStream newInputStream = openFileInput(Util.NEW_MANIFEST_DIR);
+		byte[] buf = new byte[1024];
+		int len;
+		while ((len = newInputStream.read(buf)) > 0){
+			fos.write(buf, 0, len);
+		}
+		newInputStream.close();
+		fos.close();
+
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "New manifest transfered to Current manifest!");
 	}
 
 	/**
