@@ -13,14 +13,14 @@ import edu.buffalo.cse.phonelab.phonelabservices.PhoneLabMainView;
 import edu.buffalo.cse.phonelab.phonelabservices.R;
 
 public class Util {
-	public static final String MANIFEST_DOWNLOAD_URL = "http://107.20.190.88/manifest/";//url to download manifest
+	public static final String MANIFEST_DOWNLOAD_URL = "http://107.22.187.240/manifest/";//url to download manifest
 	public static final String NEW_MANIFEST_DIR = "new_manifest.xml";//directory to download new manifest
 	public static final String CURRENT_MANIFEST_DIR = "manifest.xml";//directory for current, latest manifest 
-	public static final String APP_DOWNLOAD_URL = "http://107.20.190.88/experiment/";//base url to download application 
+	public static final String APP_DOWNLOAD_URL = "http://107.22.187.240/experiment/";//base url to download application 
 	public static final String MANIFEST_UPLOAD_URL = "http://50.19.247.145/phonelab/upload_manifest.php";
-	public static final String DEVICE_STATUS_UPLOAD_URL = "http://107.20.190.88/devicestatus/";
-	public static final String URLTOUPLOAD = "http://107.20.190.88/device/";
-	public static final String APPLICATION_ACTION_URL = "http://107.20.190.88/deviceapplication/";
+	public static final String DEVICE_STATUS_UPLOAD_URL = "http://107.22.187.240/devicestatus/";
+	public static final String URLTOUPLOAD = "http://107.22.187.240/device/";
+	public static final String APPLICATION_ACTION_URL = "http://107.22.187.240/deviceapplication/";
 	
 	public static final String SHARED_PREFERENCES_FILE_NAME = "phonelab_settings";
 	public static final String SHARED_PREFERENCES_REG_ID_KEY = "reg_id";
@@ -45,7 +45,7 @@ public class Util {
 	public final static int AUX_LOG_FILES = 20;
 	public final static String LOG_DIR = ".log";
 	public final static long THRESHOLD = 25;//KB
-	public final static String POST_URL = "http://107.20.190.88/log/";
+	public final static String POST_URL = "http://107.22.187.240/log/";
 	
 	public static String getDeviceId (Context context) {
 		TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
