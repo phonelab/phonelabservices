@@ -46,10 +46,10 @@ public class DownloadFile {
 			//double counter = 0;
 			int current = 0;
 			while (current != -1) {
-				//counter += current/1024;
+			//	counter += current/1024;
 				fos.write(buf, 0, current);
 				current = bis.read(buf, 0, BUFFER_SIZE);
-				//Log.i("PhoneLab-" + "DownloadFile", counter + " bytes downloaded");
+			//	Log.i("PhoneLab-" + "DownloadFile", counter + " bytes downloaded");
 			}
 			fos.close();
 			Log.i("PhoneLab-" + "DownloadFile", "Download completed in" + ((System.currentTimeMillis() - startTime) / 1000) + " sec");

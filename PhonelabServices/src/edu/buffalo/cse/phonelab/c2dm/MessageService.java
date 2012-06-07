@@ -4,6 +4,7 @@
  * Processes the received message and performs actions accordingly. 
  * Actions involve :
  * 		Merge New Manifest File
+ *    Flash New Image using OTA
  * 		Download / Install Apps
  * 		Uninstall Apps (with App data)
  * 		Update Apps
@@ -40,6 +41,8 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.os.SystemClock;
+//Recovery system needs android.os.RecoverySystem
+import android.os.RecoverySystem;
 import android.util.Log;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabApplication;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabManifest;
@@ -110,8 +113,15 @@ public class MessageService extends IntentService {
 			} else if (message.equals("get_device_status")) { 	// Send device status to server
 				UploadDeviceStatus uploadDeviceStatus = new UploadDeviceStatus();
 				uploadDeviceStatus.uploadDeviceStatus(getApplicationContext(), Util.DEVICE_STATUS_UPLOAD_URL + Util.getDeviceId(getApplicationContext()));
-			} else if (message.equals("flash")) {
-
+			} else if (message.equals("recovery_system")) {
+		    if (DownloadFile.downloadToDirectory(this, Util.OTA_DOWNLOAD_URL + "ota.zip", Environment.getDownloadCacheDirectory() + "/ota.zip")) {
+          File packageFile = new File(Environment.getDownloadCacheDirectory() + "/ota.zip");
+          try {
+            RecoverySystem.installPackage(getApplicationContext(), packageFile);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
 			} else if (message.equals("upload_manifest")) { 	// Send updated manifest to the server
 				
 			} else if (message.equals("uninstall_all_apps")) {
