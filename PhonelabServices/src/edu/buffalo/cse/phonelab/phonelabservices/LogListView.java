@@ -27,7 +27,7 @@ public class LogListView extends ListActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.application_list_grid);
+        setContentView(R.layout.application_list);
     }
     
     @Override
