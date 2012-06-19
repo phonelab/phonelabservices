@@ -5,6 +5,14 @@
     android:background="#ABA6A0"
     android:orientation="vertical" >
 
+    <ImageView
+        android:id="@+id/main_Logo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:padding="7dp"
+        android:src="@drawable/phonelab_logo_black" />
+
     <TextView
         android:id="@+id/textView1"
         android:layout_width="match_parent"
@@ -24,31 +32,132 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textColor="#000000" />
 
-    <Button
-        android:id="@+id/button1"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="installedApps"
-        android:text="@string/instlldapps" />
+        android:orientation="horizontal" >
 
-    <Button
-        android:id="@+id/button3"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/main_settings" android:onClick="showSettings"/>
+        <LinearLayout
+            android:layout_width="0px"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical" >
 
-    <Button
-        android:id="@+id/button4"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="showLogs"
-        android:text="@string/main_logs" />
+            <ImageButton
+                android:id="@+id/button1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:clickable="true"
+                android:contentDescription="@string/instlldapps"
+                android:onClick="installedApps"
+                android:padding="7dp"
+                android:src="@drawable/glyphicons_072_bookmark"
+                android:text="@string/instlldapps" />
 
-    <Button
-        android:id="@+id/button2"
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:gravity="center_horizontal"
+                android:onClick="installedApps"
+                android:text="@string/instlldapps"
+                android:textSize="20dp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0px"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical" >
+
+            <ImageButton
+                android:id="@+id/button3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:clickable="true"
+                android:contentDescription="@string/instlldapps"
+                android:onClick="showSettings"
+                android:padding="7dp"
+                android:src="@drawable/glyphicons_019_cogwheel"
+                android:text="@string/main_settings" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:gravity="center_horizontal"
+                android:onClick="showSettings"
+                android:text="@string/main_settings"
+                android:textSize="20dp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="showInfo"
-        android:text="@string/moreinfo" />
+        android:orientation="horizontal" >
+
+        <LinearLayout
+            android:layout_width="0px"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical" >
+
+            <ImageButton
+                android:id="@+id/button4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:clickable="true"
+                android:contentDescription="@string/instlldapps"
+                android:onClick="showLogs"
+                android:padding="7dp"
+                android:src="@drawable/glyphicons_039_notes"
+                android:text="@string/main_logs" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:gravity="center_horizontal"
+                android:onClick="showLogs"
+                android:text="@string/main_logs"
+                android:textSize="20dp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0px"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical" >
+
+            <ImageButton
+                android:id="@+id/button2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:clickable="true"
+                android:contentDescription="@string/instlldapps"
+                android:onClick="showInfo"
+                android:padding="7dp"
+                android:src="@drawable/glyphicons_020_home"
+                android:text="@string/moreinfo" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:gravity="center_horizontal"
+                android:onClick="showInfo"
+                android:text="@string/moreinfo"
+                android:textSize="20dp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
 
 </LinearLayout>

@@ -29,7 +29,7 @@ public class ApplicationList extends ListActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.application_list);
+		setContentView(R.layout.application_list_grid);
 
 		PhoneLabManifest manifest = new PhoneLabManifest(Util.CURRENT_MANIFEST_DIR, getApplicationContext());
 		try {
