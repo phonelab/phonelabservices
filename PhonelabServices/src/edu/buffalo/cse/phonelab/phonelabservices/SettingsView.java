@@ -27,7 +27,7 @@ public class SettingsView extends Activity {
         ToggleButton toggle2 = (ToggleButton) findViewById(R.id.toggleButton2);
         SharedPreferences settings = getApplicationContext().getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
 		toggle1.setChecked(settings.getBoolean(Util.SHARED_PREFERENCES_SETTINGS_WIFI_FOR_LOG, false));
-		toggle2.setChecked(settings.getBoolean(Util.SHARED_PREFERENCES_SETTINGS_POWER_FOR_LOG, false));
+		toggle2.setChecked(settings.getBoolean(Util.SHARED_PREFERENCES_SETTINGS_POWER_FOR_LOG, true));
     }
     
     public void uploadSettingsChanged (View view) {

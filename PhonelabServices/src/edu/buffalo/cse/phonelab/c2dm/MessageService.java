@@ -43,6 +43,13 @@ import android.os.Environment;
 import android.os.SystemClock;
 //Recovery system needs android.os.RecoverySystem
 import android.os.RecoverySystem;
+import android.os.Build.VERSION;
+import android.app.DownloadManager;
+import android.net.Uri;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
+import android.widget.Toast;
+
 import android.util.Log;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabApplication;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabManifest;
@@ -62,6 +69,13 @@ public class MessageService extends IntentService {
 	public MessageService() {
 		super("MessageService");
 	}
+ 
+  private BroadcastReceiver completeReceiver = new BroadcastReceiver(){
+    @Override
+    public void onReceive(Context context, Intent intent){
+      Toast.makeText(context, "Downloading the file completes", Toast.LENGTH_SHORT).show();
+    }
+  }
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
@@ -114,6 +128,33 @@ public class MessageService extends IntentService {
 				UploadDeviceStatus uploadDeviceStatus = new UploadDeviceStatus();
 				uploadDeviceStatus.uploadDeviceStatus(getApplicationContext(), Util.DEVICE_STATUS_UPLOAD_URL + Util.getDeviceId(getApplicationContext()));
 			} else if (message.equals("recovery_system")) {
+        if(isDownloadManagerAvailable(getApplicationContext())){
+          DownloadManager downloadmanager = (DownloadManager) getSystemService(getApplicationContext().DOWNLOAD_SERVIVE);
+          
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Check versions successfully");
+          File packageFile = new File(Environmen.getDownloadCacheDirectory() + "/update.zip");
+          DownloadManager.Request request = new DownloadManager.Request(Uri.parse(util.OTA_DOWNLOAD_URL + "update.zip"));       
+
+          request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
+          request.setDescription("Download OTA Image");
+          request.setTitle("OTA Update");
+          request.setAllowedOverRoaming(false);
+          request.setShowRunningNotification(true);
+          if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            request.allowScanningByMediaScanner();
+            //VISIBILITY_HIDDEN, VISIBILITI_VISIBLE and VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+            request.setNotificationVisibility(DownloadMager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+          }
+     
+          //request.setDestinationInExternalPublicDir(Environment.getDownloadCacheDirectory(), "update.zip");
+          request.setDestinationUri(Uri.fromFile(packageFile));
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "(public) Download update.zip successfully");
+          //request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "ota.zip");
+
+          // get id from enqueue
+          long id = downloadmanager.enqueue(request);     
+        }
+        /*
 		    if (DownloadFile.downloadToDirectory(this, Util.OTA_DOWNLOAD_URL + "ota.zip", Environment.getDownloadCacheDirectory() + "/ota.zip")) {
           File packageFile = new File(Environment.getDownloadCacheDirectory() + "/ota.zip");
           try {
@@ -121,7 +162,8 @@ public class MessageService extends IntentService {
           } catch (IOException e) {
             e.printStackTrace();
           }
-        }
+        }*/
+        
 			} else if (message.equals("upload_manifest")) { 	// Send updated manifest to the server
 				
 			} else if (message.equals("uninstall_all_apps")) {
@@ -590,5 +632,26 @@ public class MessageService extends IntentService {
 
 		return;
 	}
+
+  /**
+  * Check the device version and Downloadmanager info because DownloadManager class needs GingerBread and newer version
+  * @param context
+  * @return true if the Downloadmanager is available, false, is not available
+  */
+  private static boolean isDownloadManagerAvailable(Context context){
+    try{
+      if(Build.VERSION.SDK_INT < Build.VERSION_CODES.GINGERBREAD){
+        return false;
+      }
+      Intent intent = new Intent(Intent.ACTION_MAIN);
+      intent.addCategory(Intent.CATEGORY_LAUNCHER);
+      intent.setClassName("com.android.providers.downloads.ui", "com.android.providers.downloads.ui.DownloadList");
+      List<ResolvInfo> list = context.getPacageManager().queryIntentActivities(intent, Packagemanager.MATCH_DEFAULT_ONLY);
+      return list.size() > 0;
+    } catch (Exception e){
+      return false;
+    }
+  }
+ 
 }
 
