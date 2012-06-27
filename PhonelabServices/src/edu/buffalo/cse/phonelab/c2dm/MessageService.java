@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
@@ -39,6 +40,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.os.Build;
 import android.os.Environment;
 import android.os.SystemClock;
 //Recovery system needs android.os.RecoverySystem
@@ -75,7 +78,7 @@ public class MessageService extends IntentService {
     public void onReceive(Context context, Intent intent){
       Toast.makeText(context, "Downloading the file completes", Toast.LENGTH_SHORT).show();
     }
-  }
+  };
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
@@ -129,11 +132,11 @@ public class MessageService extends IntentService {
 				uploadDeviceStatus.uploadDeviceStatus(getApplicationContext(), Util.DEVICE_STATUS_UPLOAD_URL + Util.getDeviceId(getApplicationContext()));
 			} else if (message.equals("recovery_system")) {
         if(isDownloadManagerAvailable(getApplicationContext())){
-          DownloadManager downloadmanager = (DownloadManager) getSystemService(getApplicationContext().DOWNLOAD_SERVIVE);
+          DownloadManager downloadmanager = (DownloadManager) getSystemService(getApplicationContext().DOWNLOAD_SERVICE);
           
 					Log.i("PhoneLab-" + getClass().getSimpleName(), "Check versions successfully");
-          File packageFile = new File(Environmen.getDownloadCacheDirectory() + "/update.zip");
-          DownloadManager.Request request = new DownloadManager.Request(Uri.parse(util.OTA_DOWNLOAD_URL + "update.zip"));       
+          File packageFile = new File(Environment.getDownloadCacheDirectory() + "/update.zip");
+          DownloadManager.Request request = new DownloadManager.Request(Uri.parse(Util.OTA_DOWNLOAD_URL + "update.zip"));       
 
           request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
           request.setDescription("Download OTA Image");
@@ -143,7 +146,7 @@ public class MessageService extends IntentService {
           if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             request.allowScanningByMediaScanner();
             //VISIBILITY_HIDDEN, VISIBILITI_VISIBLE and VISIBILITY_VISIBLE_NOTIFY_COMPLETED
-            request.setNotificationVisibility(DownloadMager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
           }
      
           //request.setDestinationInExternalPublicDir(Environment.getDownloadCacheDirectory(), "update.zip");
@@ -646,7 +649,7 @@ public class MessageService extends IntentService {
       Intent intent = new Intent(Intent.ACTION_MAIN);
       intent.addCategory(Intent.CATEGORY_LAUNCHER);
       intent.setClassName("com.android.providers.downloads.ui", "com.android.providers.downloads.ui.DownloadList");
-      List<ResolvInfo> list = context.getPacageManager().queryIntentActivities(intent, Packagemanager.MATCH_DEFAULT_ONLY);
+      List<ResolveInfo> list = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
       return list.size() > 0;
     } catch (Exception e){
       return false;
