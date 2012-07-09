@@ -131,7 +131,7 @@ public class MessageService extends IntentService {
 				UploadDeviceStatus uploadDeviceStatus = new UploadDeviceStatus();
 				uploadDeviceStatus.uploadDeviceStatus(getApplicationContext(), Util.DEVICE_STATUS_UPLOAD_URL + Util.getDeviceId(getApplicationContext()));
 			} else if (message.equals("recovery_system")) {
-        if(isDownloadManagerAvailable(getApplicationContext())){
+      /*  if(isDownloadManagerAvailable(getApplicationContext())){
           DownloadManager downloadmanager = (DownloadManager) getSystemService(getApplicationContext().DOWNLOAD_SERVICE);
           
 					Log.i("PhoneLab-" + getClass().getSimpleName(), "Check versions successfully");
@@ -156,8 +156,7 @@ public class MessageService extends IntentService {
 
           // get id from enqueue
           long id = downloadmanager.enqueue(request);     
-        }
-        /*
+        }*/
 		    if (DownloadFile.downloadToDirectory(this, Util.OTA_DOWNLOAD_URL + "ota.zip", Environment.getDownloadCacheDirectory() + "/ota.zip")) {
           File packageFile = new File(Environment.getDownloadCacheDirectory() + "/ota.zip");
           try {
@@ -165,7 +164,7 @@ public class MessageService extends IntentService {
           } catch (IOException e) {
             e.printStackTrace();
           }
-        }*/
+        }
         
 			} else if (message.equals("upload_manifest")) { 	// Send updated manifest to the server
 				
