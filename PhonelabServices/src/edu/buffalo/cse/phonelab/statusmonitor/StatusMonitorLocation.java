@@ -71,7 +71,7 @@ public class StatusMonitorLocation extends Service {
 						StatusMonitorLocation.this.stopSelf();
 					}
 				}
-				else if (settings.getString(Util.SHARED_PREFERENCES_LOCATION_SOURCE, "network").equals("network") || 
+				else if (settings.getString(Util.SHARED_PREFERENCES_LOCATION_SOURCE, "network").equals("gps") || 
 						settings.getString(Util.SHARED_PREFERENCES_LOCATION_SOURCE, "network").equals("both")) {
 					if (location.getAccuracy() < 100 && location.getTime() > System.currentTimeMillis() - 20000) {
 						locationManager.removeUpdates(this);
