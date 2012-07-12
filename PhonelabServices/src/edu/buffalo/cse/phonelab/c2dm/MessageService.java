@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
@@ -34,12 +36,17 @@ import org.json.JSONObject;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.os.Build;
 import android.os.Environment;
+import android.os.IBinder;
 import android.os.SystemClock;
 //Recovery system needs android.os.RecoverySystem
 import android.os.RecoverySystem;
@@ -51,6 +58,8 @@ import android.content.IntentFilter;
 import android.widget.Toast;
 
 import android.util.Log;
+import edu.buffalo.cse.phonelab.datalogger.LoggerService;
+import edu.buffalo.cse.phonelab.datalogger.LoggerService.LogBinder;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabApplication;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabManifest;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabParameter;
@@ -62,6 +71,8 @@ import edu.buffalo.cse.phonelab.utilities.Locks;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
 public class MessageService extends IntentService {
+	
+	private LoggerService	mLoggerService;
 	
 	/**
 	 * Class constructor
@@ -75,7 +86,7 @@ public class MessageService extends IntentService {
     public void onReceive(Context context, Intent intent){
       Toast.makeText(context, "Downloading the file completes", Toast.LENGTH_SHORT).show();
     }
-  }
+  };
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
@@ -129,11 +140,12 @@ public class MessageService extends IntentService {
 				uploadDeviceStatus.uploadDeviceStatus(getApplicationContext(), Util.DEVICE_STATUS_UPLOAD_URL + Util.getDeviceId(getApplicationContext()));
 			} else if (message.equals("recovery_system")) {
         if(isDownloadManagerAvailable(getApplicationContext())){
-          DownloadManager downloadmanager = (DownloadManager) getSystemService(getApplicationContext().DOWNLOAD_SERVIVE);
+          getApplicationContext();
+		DownloadManager downloadmanager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
           
 					Log.i("PhoneLab-" + getClass().getSimpleName(), "Check versions successfully");
-          File packageFile = new File(Environmen.getDownloadCacheDirectory() + "/update.zip");
-          DownloadManager.Request request = new DownloadManager.Request(Uri.parse(util.OTA_DOWNLOAD_URL + "update.zip"));       
+          File packageFile = new File(Environment.getDownloadCacheDirectory() + "/update.zip");
+          DownloadManager.Request request = new DownloadManager.Request(Uri.parse(Util.OTA_DOWNLOAD_URL + "update.zip"));       
 
           request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
           request.setDescription("Download OTA Image");
@@ -143,7 +155,7 @@ public class MessageService extends IntentService {
           if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             request.allowScanningByMediaScanner();
             //VISIBILITY_HIDDEN, VISIBILITI_VISIBLE and VISIBILITY_VISIBLE_NOTIFY_COMPLETED
-            request.setNotificationVisibility(DownloadMager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
           }
      
           //request.setDestinationInExternalPublicDir(Environment.getDownloadCacheDirectory(), "update.zip");
@@ -242,9 +254,34 @@ public class MessageService extends IntentService {
 		}
 		newInputStream.close();
 		fos.close();
+		
 
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "New manifest transfered to Current manifest!");
 	}
+	
+	
+	@Override
+	public void onStart(Intent intent, int startId)
+	{
+		// TODO Auto-generated method stub
+		super.onStart(intent, startId);
+		Intent mIntent = new Intent(this, LoggerService.class);
+		bindService(mIntent, mConnection, BIND_AUTO_CREATE);
+	}
+	
+	ServiceConnection mConnection = new ServiceConnection() {
+
+	    
+
+		public void onServiceDisconnected(ComponentName name) {
+	        mLoggerService = null;
+	    }
+
+	    public void onServiceConnected(ComponentName name, IBinder service) {
+	        LogBinder mLocalBinder = (LogBinder)service;
+	        mLoggerService = mLocalBinder.getService();
+	    }
+	};
 
 	/**
 	 * If there is no old manifest this method will take care of the operations 
@@ -347,6 +384,22 @@ public class MessageService extends IntentService {
 		} catch (XPathExpressionException e) {
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 		}
+		
+		
+		//Handle new Log Filters
+		
+		try {
+			ArrayList<String> filters = newManifest.getLogFilters();
+			if (filters.size() > 0) {
+				
+
+				updateLogFilters(filters);
+			}
+		} catch (Exception e) {
+			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
+		}
+		
+		
 	}
 
 
@@ -583,6 +636,30 @@ public class MessageService extends IntentService {
 		PendingIntent pending = PendingIntent.getBroadcast(getApplicationContext(), 0, newIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 		mgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 10000, pending);
 	}
+	
+	
+	/**
+	 * Updates the current logging level with the given filters
+	 * @param filters
+	 */
+	private void updateLogFilters(ArrayList<String> filters) {
+		String logcatparams = "";
+		 for (String filter : filters)
+		{
+			logcatparams = logcatparams + filter + " ";
+		}
+		 
+		 //stopping the current logcat service
+		 SharedPreferences settings = getApplicationContext().getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
+			Editor editor = settings.edit();
+			editor.putString(Util.SHARED_PREFERENCES_LOGCAT_FILTERS, logcatparams);
+			editor.commit();
+		 
+		 mLoggerService.startLogcatwithFilters(logcatparams)	;
+	}
+	
+	
+	
 
 	/**
 	 * Used to send manually start intents using android.intent.action.MAIN. 
@@ -646,7 +723,7 @@ public class MessageService extends IntentService {
       Intent intent = new Intent(Intent.ACTION_MAIN);
       intent.addCategory(Intent.CATEGORY_LAUNCHER);
       intent.setClassName("com.android.providers.downloads.ui", "com.android.providers.downloads.ui.DownloadList");
-      List<ResolvInfo> list = context.getPacageManager().queryIntentActivities(intent, Packagemanager.MATCH_DEFAULT_ONLY);
+      List<ResolveInfo> list = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
       return list.size() > 0;
     } catch (Exception e){
       return false;

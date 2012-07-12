@@ -78,7 +78,7 @@ public class LoggerService extends Service {
 						renameLogFiles();
 					}
 					foundLogCat = true;
-					break;
+					//break;
 				} else {
 					Log.i("PhoneLab-" + getClass().getSimpleName(), "Killing bogus process " + pid);
 					// Kill other bogus processes
@@ -95,6 +95,24 @@ public class LoggerService extends Service {
 			startLogcat();
 		}
 	}
+	
+	
+	private void stopLogCatProcess() {
+		List<Integer> pids = getPID("logcat");
+		if (pids.size() > 0) {
+			for(int pid:pids) {
+				
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Killing logcat process " + pid);
+					// Kill other bogus processes
+					android.os.Process.killProcess(pid);
+					
+				}
+			}
+		editor.putInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, -1);
+		editor.commit();
+			
+		} 
+	
 
 	/**
 	 * Checks if there exist a auxilary waiting to transfer log file 
@@ -233,10 +251,13 @@ public class LoggerService extends Service {
 		int pid = 0;
 		try {
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "Logcat process not found, starting process");
+			
+			String filters = settings.getString(Util.SHARED_PREFERENCES_LOGCAT_FILTERS, "-v");
+			
 			// create log dir if it doesn`t exist
 			createLogDir();
 			System.out.println(LOG_DIR);
-			Runtime.getRuntime().exec("logcat -v threadtime -f " + LOG_DIR + "log.out -r " + Util.LOG_FILE_SIZE + " -n " + Util.AUX_LOG_FILES + " &");
+			Runtime.getRuntime().exec("logcat "+filters+" -f " + LOG_DIR + "log.out -r " + Util.LOG_FILE_SIZE + " -n " + Util.AUX_LOG_FILES + " &");
 			pid = getPID("logcat").iterator().next();
 			editor.putInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, pid);
 			editor.commit();
@@ -246,6 +267,12 @@ public class LoggerService extends Service {
 		} catch (Exception e) {
 			Log.e("PhoneLab-" + getClass().getSimpleName(),e.toString());
 		}
+	}
+	
+	
+	public void startLogcatwithFilters(String filters) {
+		stopLogCatProcess();
+		startLogcat();
 	}
 
 	/**
@@ -266,7 +293,7 @@ public class LoggerService extends Service {
 	}
 
 	public class LogBinder extends Binder {
-		LoggerService getService() {
+		public LoggerService getService() {
 			return LoggerService.this;
 		}
 	}

@@ -32,6 +32,8 @@ public class Util {
 	public static final String SHARED_PREFERENCES_SETTINGS_POWER_FOR_LOG = "log_power";
 	public static final String SHARED_PREFERENCES_POWER_CONNECTED = "power_connected";
 	public static final String SHARED_PREFERENCES_LOCATION_SOURCE = "location_source";//possible values: network, gps, both
+	//added for logcat filters
+	public static final String SHARED_PREFERENCES_LOGCAT_FILTERS = "logcat_filters";
 	
 	//Peridic Checks
 	public static final long PERIODIC_CHECK_INTERVAL = 30 * 60000;//5 minutes

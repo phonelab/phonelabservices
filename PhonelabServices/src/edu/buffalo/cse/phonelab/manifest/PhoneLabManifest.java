@@ -184,6 +184,29 @@ public class PhoneLabManifest {
 
 		return paramList;
 	}
+	
+	
+	
+	public ArrayList<String> getLogFilters () throws XPathExpressionException {
+		ArrayList<String> paramList = new ArrayList<String>();
+		
+		NodeList list = (NodeList) xpath.evaluate("/manifest/logfilters/filter", document, XPathConstants.NODESET);
+		for (int i = 0;i < list.getLength();i++) {
+			
+			Element ele = (Element) list.item(i);
+			
+			String tag =ele.getAttribute("tagname");
+			if(tag.equals(""))
+				tag="*";
+			String level = ele.getAttribute("level");
+			String filter = tag +":"+level;
+			paramList.add(filter);
+			
+		}
+
+		return paramList;
+	}
+	
 
 	/**
 	 * This will remove all applications 
