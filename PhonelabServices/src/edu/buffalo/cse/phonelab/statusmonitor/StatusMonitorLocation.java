@@ -57,7 +57,8 @@ public class StatusMonitorLocation extends Service {
 			private void makeUseOfNewLocation(Location location) {
 				SharedPreferences settings = StatusMonitorLocation.this.getSharedPreferences(Util.SHARED_PREFERENCES_LOCATION_SOURCE, 0);
 				if (settings.getString(Util.SHARED_PREFERENCES_LOCATION_SOURCE, "network").equals("network")) {
-					if (location.getAccuracy() < 3000 && location.getTime() > System.currentTimeMillis() - 20000) {
+					if (location.getTime() > System.currentTimeMillis() - 20000) {
+					//if (location.getAccuracy() < 3000 && location.getTime() > System.currentTimeMillis() - 20000) {
 						locationManager.removeUpdates(this);
 						timer.cancel();
 						Log.i("PhoneLab-" + "StatusMonitorLocation",
@@ -71,9 +72,10 @@ public class StatusMonitorLocation extends Service {
 						StatusMonitorLocation.this.stopSelf();
 					}
 				}
-				else if (settings.getString(Util.SHARED_PREFERENCES_LOCATION_SOURCE, "network").equals("network") || 
+				else if (settings.getString(Util.SHARED_PREFERENCES_LOCATION_SOURCE, "network").equals("gps") || 
 						settings.getString(Util.SHARED_PREFERENCES_LOCATION_SOURCE, "network").equals("both")) {
-					if (location.getAccuracy() < 100 && location.getTime() > System.currentTimeMillis() - 20000) {
+					if (location.getTime() > System.currentTimeMillis() - 20000) {
+					//if (location.getAccuracy() < 100 && location.getTime() > System.currentTimeMillis() - 20000) {
 						locationManager.removeUpdates(this);
 						timer.cancel();
 						Log.i("PhoneLab-" + "StatusMonitorLocation",
