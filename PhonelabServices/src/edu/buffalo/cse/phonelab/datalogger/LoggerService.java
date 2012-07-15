@@ -257,11 +257,14 @@ public class LoggerService extends Service {
 			// create log dir if it doesn`t exist
 			createLogDir();
 			System.out.println(LOG_DIR);
-			Runtime.getRuntime().exec("logcat "+filters+" -f " + LOG_DIR + "log.out -r " + Util.LOG_FILE_SIZE + " -n " + Util.AUX_LOG_FILES + " &");
+			
+			String logcatcommand = "logcat "+filters+" -f " + LOG_DIR + "log.out -r " + Util.LOG_FILE_SIZE + " -n " + Util.AUX_LOG_FILES + " &";
+			Log.d("PhoneLab-" + getClass().getSimpleName(), "Logcat COMMAND " + logcatcommand);
+			Runtime.getRuntime().exec(logcatcommand);
 			pid = getPID("logcat").iterator().next();
 			editor.putInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, pid);
 			editor.commit();
-			Log.i("PhoneLab-" + getClass().getSimpleName(), "PID to db" + pid);
+			Log.i("PhoneLab-" + getClass().getSimpleName(), "PID to db " + pid);
 		} catch (IOException e) {
 			Log.e("PhoneLab-" + getClass().getSimpleName(),e.toString());
 		} catch (Exception e) {
@@ -271,6 +274,8 @@ public class LoggerService extends Service {
 	
 	
 	public void startLogcatwithFilters(String filters) {
+		
+		Log.i("PhoneLab-" + getClass().getSimpleName(),"Got new filters, restarting logcat service");
 		stopLogCatProcess();
 		startLogcat();
 	}

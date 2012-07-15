@@ -36,19 +36,15 @@ import org.json.JSONObject;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Build;
 import android.os.Environment;
-import android.os.IBinder;
 import android.os.SystemClock;
-import java.util.Iterator;
 //Recovery system needs android.os.RecoverySystem
 import android.os.RecoverySystem;
 import android.os.Build.VERSION;
@@ -59,8 +55,6 @@ import android.content.IntentFilter;
 import android.widget.Toast;
 
 import android.util.Log;
-import edu.buffalo.cse.phonelab.datalogger.LoggerService;
-import edu.buffalo.cse.phonelab.datalogger.LoggerService.LogBinder;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabApplication;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabManifest;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabParameter;
@@ -73,10 +67,7 @@ import edu.buffalo.cse.phonelab.utilities.Util;
 
 public class MessageService extends IntentService
 {
-
-	private LoggerService	mLoggerService;
-
-	/**
+		/**
 	 * Class constructor
 	 */
 	public MessageService()
@@ -115,15 +106,37 @@ public class MessageService extends IntentService
 						Util.MANIFEST_DOWNLOAD_URL + Util.getDeviceId(this),
 						Util.NEW_MANIFEST_DIR))
 				{
+					Log.v("PhoneLab-" + getClass().getSimpleName(),
+							"New manifest here ");
 					PhoneLabManifest newManifest = new PhoneLabManifest(
 							Util.NEW_MANIFEST_DIR, getApplicationContext());
 					if (newManifest.getManifest())
 					{
+						// Handle new Log Filters
+
+						try
+						{
+							Log.v("PhoneLab-" + getClass().getSimpleName(), "updating log filters");
+							ArrayList<String> filters = newManifest.getLogFilters();
+							Log.v("PhoneLab-" + getClass().getSimpleName(), "number of filters"+filters.size());
+							if (filters.size() > 0)
+							{
+
+								updateLogFilters(filters);
+							}
+						}
+						catch (Exception e)
+						{
+							Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
+						}
 						PhoneLabManifest currentManifest = new PhoneLabManifest(
 								Util.CURRENT_MANIFEST_DIR,
 								getApplicationContext());
 						if (currentManifest.getManifest())
 						{
+							Log.v("PhoneLab-" + getClass().getSimpleName(),
+									"In handle current manifest ");
+							
 							handleExistingManifest(currentManifest, newManifest);
 							try
 							{
@@ -137,6 +150,9 @@ public class MessageService extends IntentService
 						}
 						else
 						{
+							
+							Log.v("PhoneLab-" + getClass().getSimpleName(),
+									"No current manifest found, renaming and handling manifest ");
 							try
 							{
 								renameNewManifest();
@@ -239,7 +255,12 @@ public class MessageService extends IntentService
 					 * 
 					 * // get id from enqueue long id =
 					 * downloadmanager.enqueue(request); }
+					 * 
+					 * 
 					 */
+					
+					Log.i("PhoneLab-" + getClass().getSimpleName(),
+							"Starting new image download");
 					if (DownloadFile.downloadToDirectory(this,
 							Util.OTA_DOWNLOAD_URL + "ota.zip",
 							Environment.getDownloadCacheDirectory()
@@ -248,6 +269,9 @@ public class MessageService extends IntentService
 						File packageFile = new File(
 								Environment.getDownloadCacheDirectory()
 										+ "/ota.zip");
+						
+						Log.i("PhoneLab-" + getClass().getSimpleName(),
+								"Download done installing image");
 						try
 						{
 							RecoverySystem.installPackage(
@@ -404,34 +428,7 @@ public class MessageService extends IntentService
 				"New manifest transfered to Current manifest!");
 	}
 
-	@Override
-	public void onStart(Intent intent, int startId)
-	{
-		// TODO Auto-generated method stub
-		super.onStart(intent, startId);
-		Intent mIntent = new Intent(this, LoggerService.class);
-		bindService(mIntent, mConnection, BIND_AUTO_CREATE);
-	}
-
-	ServiceConnection	mConnection	= new ServiceConnection()
-									{
-
-										public void onServiceDisconnected(
-												ComponentName name)
-										{
-											mLoggerService = null;
-										}
-
-										public void onServiceConnected(
-												ComponentName name,
-												IBinder service)
-										{
-											LogBinder mLocalBinder = (LogBinder) service;
-											mLoggerService = mLocalBinder
-													.getService();
-										}
-									};
-
+	
 	/**
 	 * If there is no old manifest this method will take care of the operations
 	 * 
@@ -488,6 +485,23 @@ public class MessageService extends IntentService
 		{
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 		}
+		
+		// Handle new Log Filters
+
+				try
+				{
+					ArrayList<String> filters = currentManifest.getLogFilters();
+					if (filters.size() > 0)
+					{
+						Log.i("PhoneLab-" + getClass().getSimpleName(), "Got new logcat filters   " + filters.toString());
+
+						updateLogFilters(filters);
+					}
+				}
+				catch (Exception e)
+				{
+					Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
+				}
 	}
 
 	/**
@@ -602,21 +616,7 @@ public class MessageService extends IntentService
 			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 		}
 
-		// Handle new Log Filters
-
-		try
-		{
-			ArrayList<String> filters = newManifest.getLogFilters();
-			if (filters.size() > 0)
-			{
-
-				updateLogFilters(filters);
-			}
-		}
-		catch (Exception e)
-		{
-			Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
-		}
+		
 
 	}
 
@@ -1028,7 +1028,25 @@ public class MessageService extends IntentService
 		editor.putString(Util.SHARED_PREFERENCES_LOGCAT_FILTERS, logcatparams);
 		editor.commit();
 
-		mLoggerService.startLogcatwithFilters(logcatparams);
+		Log.v("PhoneLab-" + getClass().getSimpleName(),
+				"Updated the shared prefs with new filters killing all logcat processes" );
+		
+		//just kill the current running logcat process. The logger service will restart the new service with the new filters.
+		//There could be a delay max delay = the periodic check of the logger service.
+		List<Integer> pids = getPID("logcat");
+		if (pids.size() > 0) {
+			for(int pid:pids) {
+				
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Killing logcat process " + pid);
+					// Kill other bogus processes
+					android.os.Process.killProcess(pid);
+					
+				}
+			}
+		editor.putInt(Util.SHARED_PREFERENCES_DATA_LOGGER_PID, -1);
+		editor.commit();
+		
+		
 	}
 
 	/**
@@ -1131,6 +1149,40 @@ public class MessageService extends IntentService
 		{
 			return false;
 		}
+	}
+	
+	
+	private List<Integer> getPID(String processName) {
+		List<Integer> pids = new ArrayList<Integer>();
+
+		StringBuilder psString = new StringBuilder();
+		try {
+			Process process = Runtime.getRuntime().exec("ps");// Verbose filter
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			String line;
+			while ((line = bufferedReader.readLine()) != null) {
+				// check whether processName exists in line
+				if (line.endsWith(processName)) {
+					psString.append(line + "\n");
+				}
+			}
+		} catch (IOException e) {
+			Log.e("PhoneLab-" + getClass().getSimpleName(),e.toString());
+		}
+		// Check whether some processes were collected & Terminated is not contained
+		if(psString.length() > 0 && !psString.toString().matches("Terminated")) {
+			String[] splitString = psString.toString().split("\n");
+
+			for(int i = 0; i<splitString.length; i++) {
+				if (splitString[i].startsWith("app_")) {
+					Log.i("PhoneLab-" + getClass().getSimpleName(), splitString[i].toString());
+					String[] splitPs = splitString[i].split("\\s+");
+					pids.add(Integer.parseInt(splitPs[1]));
+				}
+			}
+		}
+
+		return pids;
 	}
 
 }
