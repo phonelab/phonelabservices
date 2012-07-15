@@ -48,6 +48,7 @@ public class StatusMonitor extends Service {
 					if (param.getUnits() != null && param.getValue() != null) {
 						long value = Long.parseLong(param.getValue());
 						String units = param.getUnits();
+						
 
 						Log.i("PhoneLab-" + getClass().getSimpleName(), "Value: " + value + " - unit: " + units);
 
@@ -68,6 +69,8 @@ public class StatusMonitor extends Service {
 						this.startService(batteryIntent);
 						Intent signalIntent = new Intent(getApplicationContext(), StatusMonitorSignal.class);
 						this.startService(signalIntent);
+						Intent cellLocationIntent = new Intent(getApplicationContext(), StatusMonitorCellLocation.class);
+						this.startService(cellLocationIntent);
 						
 						rescheduleMonitoring();
 					}

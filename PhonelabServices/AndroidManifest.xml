@@ -77,6 +77,7 @@
         <receiver android:name="edu.buffalo.cse.phonelab.phonelabservices.PeriodicCheckReceiver"></receiver>
         <service android:name="edu.buffalo.cse.phonelab.phonelabservices.PeriodicCheckService"></service>
         <service android:name="edu.buffalo.cse.phonelab.statusmonitor.StatusMonitorLocation"></service>
+        <service android:name="edu.buffalo.cse.phonelab.statusmonitor.StatusMonitorCellLocation"></service>
         <service android:name="edu.buffalo.cse.phonelab.utilities.UploadLogs"></service>
         <activity android:name="SettingsView"></activity>
         <activity android:name="LogListView"></activity>

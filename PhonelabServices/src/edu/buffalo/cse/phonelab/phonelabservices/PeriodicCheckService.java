@@ -79,36 +79,36 @@ public class PeriodicCheckService extends IntentService {
 		
 		
 		//Check connection and power for uploading log files
-		if (settings.getBoolean(Util.SHARED_PREFERENCES_SETTINGS_WIFI_FOR_LOG, false)) {
+		if (settings.getBoolean(Util.SHARED_PREFERENCES_SETTINGS_WIFI_FOR_LOG, false)) { //Checks for wifi Logs Setting
 			ConnectivityManager myConnManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
 			if(myConnManager != null){
 				if(myConnManager.getActiveNetworkInfo() != null){
-					if(myConnManager.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_WIFI) {//wifi is connected
+					if(myConnManager.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_WIFI) {//wifi is connected ON, upload
 						if (settings.getBoolean(Util.SHARED_PREFERENCES_SETTINGS_POWER_FOR_LOG, false)) {
-							if (settings.getBoolean(Util.SHARED_PREFERENCES_POWER_CONNECTED, false)) {//power is plugged in
+							if (settings.getBoolean(Util.SHARED_PREFERENCES_POWER_CONNECTED, false)) {//power is plugged in ON,upload
 								//Start uploading logs
 								Locks.acquireWakeLock(this);
 								Intent uploadIntent = new Intent(this, UploadLogs.class);
 								startService(uploadIntent);
 							}
-						} else {
+						} else { //Power is plugged in OFF, wifi ON, upload
 							//Start uploading logs
 							Locks.acquireWakeLock(this);
 							Intent uploadIntent = new Intent(this, UploadLogs.class);
 							startService(uploadIntent);
 						}
-					}
+					} //Wifi Setting ON, not available - No upload
 				}
 			}
-		} else {
+		} else { //Checked for power Setting
 			if (settings.getBoolean(Util.SHARED_PREFERENCES_SETTINGS_POWER_FOR_LOG, false)) {
 				if (settings.getBoolean(Util.SHARED_PREFERENCES_POWER_CONNECTED, false)) {//power is plugged in
 					//Start uploading logs
 					Locks.acquireWakeLock(this);
 					Intent uploadIntent = new Intent(this, UploadLogs.class);
 					startService(uploadIntent);
-				}
-			} else {
+				} // Power Setting ON, not available - No upload
+			} else { // Both Settings are OFF. Upload in 3G.
 				//Start uploading logs
 				Locks.acquireWakeLock(this);
 				Intent uploadIntent = new Intent(this, UploadLogs.class);
