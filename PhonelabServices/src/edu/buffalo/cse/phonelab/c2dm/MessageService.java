@@ -33,6 +33,7 @@ import javax.xml.xpath.XPathExpressionException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.PendingIntent;
@@ -43,7 +44,10 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.ResultReceiver;
 import android.os.SystemClock;
 //Recovery system needs android.os.RecoverySystem
 import android.os.RecoverySystem;
@@ -107,7 +111,7 @@ public class MessageService extends IntentService
 						Util.NEW_MANIFEST_DIR))
 				{
 					Log.v("PhoneLab-" + getClass().getSimpleName(),
-							"New manifest here ");
+							"New manifest here !!!!!!!!");
 					PhoneLabManifest newManifest = new PhoneLabManifest(
 							Util.NEW_MANIFEST_DIR, getApplicationContext());
 					if (newManifest.getManifest())
@@ -737,11 +741,24 @@ public class MessageService extends IntentService
 					"Installing " + app.getName() + " now...");
 			try
 			{
-				Process process = Runtime.getRuntime().exec(
-						"pm install "
-								+ Environment.getExternalStorageDirectory()
-								+ "/" + app.getAppID());
-
+//				Process process = Runtime.getRuntime().exec(
+//						"pm install "
+//								+ Environment.getExternalStorageDirectory()
+//								+ "/" + app.getAppID());
+				
+				// Changing to use the systems install dialog to show the permissions to the user.
+				
+				Log.v("PhoneLab-" + getClass().getSimpleName(),
+						"Starting new activity " );
+				
+				// Commented out to use the Android system's package handler. The monitoring of the install should be done in the status monitor.
+				
+				
+				
+				Intent intent = new Intent(getApplicationContext(),PackageInstallResultHandler.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				startActivity(intent);  
+				/*
 				String line = null;
 				// Success to install APK
 				BufferedReader buf_i = new BufferedReader(
@@ -790,26 +807,33 @@ public class MessageService extends IntentService
 				}
 
 				buf_e.close();
-				process.waitFor();
+				process.waitFor();*/
 			}
-			catch (IOException e)
-			{
+			catch(Exception e){
+				e.printStackTrace();
 				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
 				InformServer.sendMessage(getApplicationContext(),
 						app.getAppID(), InformServer.INSTALL,
 						InformServer.FAILURE);
 			}
-			catch (InterruptedException e)
-			{
-				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
-				InformServer.sendMessage(getApplicationContext(),
-						app.getAppID(), InformServer.INSTALL,
-						InformServer.FAILURE);
-			}
+//			catch (IOException e)
+//			{
+//				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
+//				InformServer.sendMessage(getApplicationContext(),
+//						app.getAppID(), InformServer.INSTALL,
+//						InformServer.FAILURE);
+//			}
+//			catch (InterruptedException e)
+//			{
+//				Log.e("PhoneLab-" + getClass().getSimpleName(), e.toString());
+//				InformServer.sendMessage(getApplicationContext(),
+//						app.getAppID(), InformServer.INSTALL,
+//						InformServer.FAILURE);
+//			}
 
 			// Remove .apk from where it is downloaded
-			removeFile(Environment.getExternalStorageDirectory() + "/"
-					+ app.getAppID());
+//			removeFile(Environment.getExternalStorageDirectory() + "/"
+//					+ app.getAppID());
 		}
 		else
 		{
@@ -1181,8 +1205,10 @@ public class MessageService extends IntentService
 				}
 			}
 		}
-
+		
 		return pids;
 	}
+	
+	
 
 }
