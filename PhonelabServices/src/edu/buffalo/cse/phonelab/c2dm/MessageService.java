@@ -286,6 +286,9 @@ public class MessageService extends IntentService
 							e.printStackTrace();
 						}
 					}
+					else{
+						//notify server that download has failed.
+					}
 
 				}
 				else if (message.equals("upload_manifest"))

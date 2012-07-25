@@ -252,7 +252,7 @@ public class LoggerService extends Service {
 		try {
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "Logcat process not found, starting process");
 			
-			String filters = settings.getString(Util.SHARED_PREFERENCES_LOGCAT_FILTERS, "-v");
+			String filters = settings.getString(Util.SHARED_PREFERENCES_LOGCAT_FILTERS, "*:V");
 			
 			// create log dir if it doesn`t exist
 			createLogDir();
@@ -273,13 +273,7 @@ public class LoggerService extends Service {
 	}
 	
 	
-	public void startLogcatwithFilters(String filters) {
-		
-		Log.i("PhoneLab-" + getClass().getSimpleName(),"Got new filters, restarting logcat service");
-		stopLogCatProcess();
-		startLogcat();
-	}
-
+	
 	/**
 	 * Stop Logging. Service Killed. Timer Stopped.
 	 */
