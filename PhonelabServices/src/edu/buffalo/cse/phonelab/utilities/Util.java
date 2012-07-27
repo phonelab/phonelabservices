@@ -36,7 +36,7 @@ public class Util {
 	public static final String SHARED_PREFERENCES_LOGCAT_FILTERS = "logcat_filters";
 	
 	//Peridic Checks
-	public static final long PERIODIC_CHECK_INTERVAL = 30 * 60000;//5 minutes
+	public static final long PERIODIC_CHECK_INTERVAL = 300 * 1000;//5 minutes
 	
 	//C2DM
 	public static final String C2DM_EMAIL = "phone.lab.buffalo@gmail.com";

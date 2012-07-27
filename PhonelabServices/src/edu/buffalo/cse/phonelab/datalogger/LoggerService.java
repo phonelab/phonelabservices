@@ -266,8 +266,10 @@ public class LoggerService extends Service {
 			editor.commit();
 			Log.i("PhoneLab-" + getClass().getSimpleName(), "PID to db " + pid);
 		} catch (IOException e) {
+			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(),e.toString());
 		} catch (Exception e) {
+			e.printStackTrace();
 			Log.e("PhoneLab-" + getClass().getSimpleName(),e.toString());
 		}
 	}

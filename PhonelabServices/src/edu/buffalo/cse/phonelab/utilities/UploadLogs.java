@@ -75,7 +75,9 @@ public class UploadLogs extends Service {
 		try {
 			params.put("file", f);
 			params.put("filename", fileName);
+			Log.v("PhoneLab-" + getClass().getSimpleName(), "Posting logs now " );
 			client.post(Util.POST_URL + Util.getDeviceId(getApplicationContext()) + "/" , params, new AsyncHttpResponseHandler() {
+				
 				@Override
 				public void onSuccess(String response) {
 					if (f.delete()) {
@@ -107,7 +109,7 @@ public class UploadLogs extends Service {
 		} catch (FileNotFoundException e) {
 			Log.e("PhoneLab-" + getClass().getSimpleName(), "File not found");
 		} catch (Exception e) {
-			Log.e("PhoneLab-" + getClass().getSimpleName(), e.getMessage());
+			e.printStackTrace();
 		}
 	}
 }

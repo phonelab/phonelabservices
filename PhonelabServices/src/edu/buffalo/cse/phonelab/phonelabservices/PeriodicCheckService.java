@@ -7,6 +7,18 @@ package edu.buffalo.cse.phonelab.phonelabservices;
 
 // TESTing for update status
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONObject;
+
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.app.AlarmManager;
@@ -21,6 +33,7 @@ import android.util.Log;
 import edu.buffalo.cse.phonelab.c2dm.RegistrationService;
 import edu.buffalo.cse.phonelab.datalogger.LoggerService;
 import edu.buffalo.cse.phonelab.statusmonitor.StatusMonitorReceiver;
+import edu.buffalo.cse.phonelab.utilities.InformServer;
 import edu.buffalo.cse.phonelab.utilities.Locks;
 import edu.buffalo.cse.phonelab.utilities.UploadLogs;
 import edu.buffalo.cse.phonelab.utilities.Util;
@@ -114,6 +127,36 @@ public class PeriodicCheckService extends IntentService {
 				Intent uploadIntent = new Intent(this, UploadLogs.class);
 				startService(uploadIntent);
 			}
+		}
+		
+		//sending heartbeat messages here
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Sending Heartbeat message ");
+		try {
+			DefaultHttpClient httpclient = new DefaultHttpClient();
+			HttpPost httpost = new HttpPost(Util.DEVICE_STATUS_UPLOAD_URL);
+			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+			String response = "";
+			ResponseHandler<String> responseHandler = new BasicResponseHandler();
+			nameValuePairs.add(new BasicNameValuePair("device_id", Util.getDeviceId(getApplicationContext())));
+			nameValuePairs.add(new BasicNameValuePair("status_type", "H"));
+			nameValuePairs.add(new BasicNameValuePair("status_value", "1"));
+			//nameValuePairs.add(new BasicNameValuePair(, ));
+			
+			
+			httpost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+			Log.i("PhoneLab-" + getClass().getSimpleName(), "Post URI is:: "+httpost.getURI().toString());
+			response = httpclient.execute(httpost,responseHandler);
+			
+			JSONObject responseJ = new JSONObject(response);
+			
+			if (responseJ.getString("error").equals("")) {//success
+				Log.i("PhoneLab-" + getClass().getSimpleName(), "Heartbeat message successfully sent : ");
+			} else {//error
+				Log.e("PhoneLab-" + getClass().getSimpleName(), "Oops!, some problem, heart beat transmission failed : ");
+				Log.v("PhoneLab-" + getClass().getSimpleName(), responseJ.toString());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		
 		//Reschedule
