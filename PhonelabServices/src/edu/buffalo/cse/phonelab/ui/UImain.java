@@ -2,8 +2,6 @@ package edu.buffalo.cse.phonelab.ui;
 
 import com.darvds.ribbonmenu.RibbonMenuView;
 import com.darvds.ribbonmenu.iRibbonMenuCallback;
-import com.whatever.attemptthree.PhoneLab.DummySectionFragment;
-import com.whatever.attemptthree.PhoneLab.SectionsPagerAdapter;
 
 import android.R;
 import android.app.ActionBar.Tab;
