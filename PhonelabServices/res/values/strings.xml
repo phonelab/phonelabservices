@@ -13,5 +13,9 @@
     <string name="settings_plugged_on">Upload log files only when device is plugged in\nON</string>
     <string name="settings_plugged_off">Upload log files only when device is plugged in\nOFF</string>
     <string name="main_logs">See Logs</string>
+    <string name="title_section4">Announcements</string>
+    <string name="title_section3">Applications</string>
+    <string name="title_section2">Profile</string>
+    <string name="title_section1">My Apps</string>
 
 </resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu   xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/rm1" android:title="My Apps" android:icon="@drawable/ic_launcher"></item>
+    <item android:id="@+id/rm2" android:title="Profile" android:icon="@drawable/ic_launcher"></item>
+    <item android:id="@+id/rm3" android:title="Submit a Complaint" android:icon="@drawable/ic_launcher"></item>
+    <item android:id="@+id/rm4" android:title="www.phone-lab.org" android:icon="@drawable/ic_launcher"></item>
+    <item android:id="@+id/rm5" android:title="Settings" android:icon="@drawable/ic_launcher"></item>
+    <item android:id="@+id/rm6" android:title="Help" android:icon="@drawable/ic_launcher"></item>
+
+</menu>
