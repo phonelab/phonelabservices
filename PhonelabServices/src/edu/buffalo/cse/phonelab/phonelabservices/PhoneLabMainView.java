@@ -3,6 +3,8 @@
  */
 package edu.buffalo.cse.phonelab.phonelabservices;
 
+import edu.buffalo.cse.phonelab.ribbonmenu.RibbonMenuView;
+import edu.buffalo.cse.phonelab.ribbonmenu.iRibbonMenuCallback;
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
 import android.app.ActionBar.Tab;
@@ -18,9 +20,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.darvds.ribbonmenu.RibbonMenuView;
-import com.darvds.ribbonmenu.iRibbonMenuCallback;
 
 public class PhoneLabMainView extends FragmentActivity implements TabListener, iRibbonMenuCallback {
 	

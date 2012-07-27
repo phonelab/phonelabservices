@@ -3,7 +3,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE_TAGS := optional 
 
-LOCAL_STATIC_JAVA_LIBRARIES := libandroidasync httpclientcache ribbonmenu
+LOCAL_STATIC_JAVA_LIBRARIES := libandroidasync httpclientcache
 
 LOCAL_SRC_FILES := $(call all-subdir-java-files)
 
@@ -20,7 +20,7 @@ include $(BUILD_PACKAGE)
 
 include $(CLEAR_VARS)
 
-LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := libandroidasync:android-async-http-1.3.1.jar httpclientcache:httpclient-cache-4.1.2.jar ribbonmenu:com_ribbonmenu.jar
+LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := libandroidasync:android-async-http-1.3.1.jar httpclientcache:httpclient-cache-4.1.2.jar
 
 include $(BUILD_MULTI_PREBUILT)
 

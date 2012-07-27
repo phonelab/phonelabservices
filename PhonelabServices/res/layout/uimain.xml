@@ -11,7 +11,7 @@
         android:layout_height="match_parent"
         tools:context=".UImain" />
     
-    <com.darvds.ribbonmenu.RibbonMenuView
+    <edu.buffalo.cse.phonelab.ribbonmenu.RibbonMenuView
         android:id="@+id/ribbonMenuView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
