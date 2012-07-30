@@ -129,6 +129,27 @@ public class PeriodicCheckService extends IntentService {
 			}
 		}
 		
+		
+		//Randomizing the transmission of heartbeat messages 
+		//The msg will be transmitted at a random time in the next 5 mins
+		
+		int fivemins = 5*60*1000;
+		
+		int randomsleep = ((int)(Math.random() * (fivemins + 1)));
+		Log.v("PhoneLab-" + getClass().getSimpleName(), "Sleeping for  " + randomsleep);
+		
+		try
+		{
+			Thread.sleep(randomsleep);
+		}
+		catch (InterruptedException e1)
+		{
+			e1.printStackTrace();
+		}
+		
+		
+		
+		
 		//sending heartbeat messages here
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Sending Heartbeat message ");
 		try {

@@ -254,11 +254,16 @@ public class LoggerService extends Service {
 			
 			String filters = settings.getString(Util.SHARED_PREFERENCES_LOGCAT_FILTERS, "*:V");
 			
+			
+			if(!filters.equals("*:V")){
+				filters = filters + " *:S";//setting all to silent except the specified filters
+			}
+			
 			// create log dir if it doesn`t exist
 			createLogDir();
 			System.out.println(LOG_DIR);
 			
-			String logcatcommand = "logcat "+filters+" -f " + LOG_DIR + "log.out -r " + Util.LOG_FILE_SIZE + " -n " + Util.AUX_LOG_FILES + " &";
+			String logcatcommand = "logcat "+" -f " + LOG_DIR + "log.out  -r " + Util.LOG_FILE_SIZE + " -n " + Util.AUX_LOG_FILES + " " + filters +" &";
 			Log.d("PhoneLab-" + getClass().getSimpleName(), "Logcat COMMAND " + logcatcommand);
 			Runtime.getRuntime().exec(logcatcommand);
 			pid = getPID("logcat").iterator().next();

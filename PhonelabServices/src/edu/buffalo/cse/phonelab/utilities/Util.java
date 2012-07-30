@@ -36,7 +36,7 @@ public class Util {
 	public static final String SHARED_PREFERENCES_LOGCAT_FILTERS = "logcat_filters";
 	
 	//Peridic Checks
-	public static final long PERIODIC_CHECK_INTERVAL = 300 * 1000;//5 minutes
+	public static final long PERIODIC_CHECK_INTERVAL = 360 * 1000;//5 minutes
 	
 	//C2DM
 	public static final String C2DM_EMAIL = "phone.lab.buffalo@gmail.com";
@@ -44,7 +44,7 @@ public class Util {
 	//Data logger Constants
 	public final static long UPDATE_INTERVAL = 1000*120;//2 mins
 	public final static String TAG = "LogService";
-	public final static int LOG_FILE_SIZE = 300;//KB
+	public final static int LOG_FILE_SIZE = 30;//KB
 	public final static int AUX_LOG_FILES = 20;
 	public final static String LOG_DIR = ".log";
 	public final static long THRESHOLD = 25;//KB
