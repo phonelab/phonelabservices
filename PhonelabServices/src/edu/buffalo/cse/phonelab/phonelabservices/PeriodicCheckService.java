@@ -27,13 +27,16 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
+import android.os.Build;
 import android.os.SystemClock;
 import android.util.Log;
 import edu.buffalo.cse.phonelab.c2dm.RegistrationService;
 import edu.buffalo.cse.phonelab.datalogger.LoggerService;
 import edu.buffalo.cse.phonelab.statusmonitor.StatusMonitorReceiver;
-import edu.buffalo.cse.phonelab.utilities.InformServer;
 import edu.buffalo.cse.phonelab.utilities.Locks;
 import edu.buffalo.cse.phonelab.utilities.UploadLogs;
 import edu.buffalo.cse.phonelab.utilities.Util;
@@ -151,34 +154,66 @@ public class PeriodicCheckService extends IntentService {
 		
 		
 		//sending heartbeat messages here
-		Log.i("PhoneLab-" + getClass().getSimpleName(), "Sending Heartbeat message ");
-		try {
-			DefaultHttpClient httpclient = new DefaultHttpClient();
-			HttpPost httpost = new HttpPost(Util.DEVICE_STATUS_UPLOAD_URL);
-			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-			String response = "";
-			ResponseHandler<String> responseHandler = new BasicResponseHandler();
-			nameValuePairs.add(new BasicNameValuePair("device_id", Util.getDeviceId(getApplicationContext())));
-			nameValuePairs.add(new BasicNameValuePair("status_type", "H"));
-			nameValuePairs.add(new BasicNameValuePair("status_value", "1"));
-			//nameValuePairs.add(new BasicNameValuePair(, ));
-			
-			
-			httpost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-			Log.i("PhoneLab-" + getClass().getSimpleName(), "Post URI is:: "+httpost.getURI().toString());
-			response = httpclient.execute(httpost,responseHandler);
-			
-			JSONObject responseJ = new JSONObject(response);
-			
-			if (responseJ.getString("error").equals("")) {//success
-				Log.i("PhoneLab-" + getClass().getSimpleName(), "Heartbeat message successfully sent : ");
-			} else {//error
-				Log.e("PhoneLab-" + getClass().getSimpleName(), "Oops!, some problem, heart beat transmission failed : ");
-				Log.v("PhoneLab-" + getClass().getSimpleName(), responseJ.toString());
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		Log.v("PhoneLab-" + getClass().getSimpleName(), "Sending Heartbeat message ");
+		
+		List<NameValuePair> HBnameValuePairs = new ArrayList<NameValuePair>(2);
+		HBnameValuePairs.add(new BasicNameValuePair("device_id", Util.getDeviceId(getApplicationContext())));
+		HBnameValuePairs.add(new BasicNameValuePair("status_type", "H"));
+		HBnameValuePairs.add(new BasicNameValuePair("status_value", "1"));
+		
+		//build number in HB
+		HBnameValuePairs.add(new BasicNameValuePair("build_version", Build.DISPLAY));
+		
+		//including the last known location in the HB msg
+		
+		 LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);  
+	        List<String> providers = lm.getProviders(true);
+
+	        /* Loop over the array backwards, and if you get an accurate location, then break out the loop*/
+	        Location l = null;
+	        
+	        for (int i=providers.size()-1; i>=0; i--) {
+	                l = lm.getLastKnownLocation(providers.get(i));
+	                if (l != null) break;
+	        }
+	        
+	        double[] gps = new double[2];
+	        if (l != null) {
+	                gps[0] = l.getLatitude();
+	                gps[1] = l.getLongitude();
+	        }
+	        
+       
+	        HBnameValuePairs.add(new BasicNameValuePair("latitude", String.valueOf(gps[0])));
+	        HBnameValuePairs.add(new BasicNameValuePair("longitude", String.valueOf(gps[1])));
+		
+		sendHeartbeatMessage(HBnameValuePairs);
+		
+		
+		//sending buildnumber update messages here
+		
+//		 boolean bnsent = settings.getBoolean(Util.BUILD_NUMBER_SENT, false) ;
+//		
+//		if(!bnsent){
+//				Log.v("PhoneLab-" + getClass().getSimpleName(), "Sending Build number message ");
+//				
+//				//TODO anand -need to get the build number
+//				
+//				//Ob - OTA build number
+//				
+//				
+//				List<NameValuePair> BNnameValuePairs = new ArrayList<NameValuePair>(2);
+//				BNnameValuePairs.add(new BasicNameValuePair("device_id", Util.getDeviceId(getApplicationContext())));
+//				BNnameValuePairs.add(new BasicNameValuePair("status_type", "O"));
+//				BNnameValuePairs.add(new BasicNameValuePair("status_value", "3"));
+//				BNnameValuePairs.add(new BasicNameValuePair("build_version", Build.DISPLAY));
+//				
+//				sendHeartbeatMessage(BNnameValuePairs);
+//		}
+//		else{
+//			Log.v("PhoneLab-" + getClass().getSimpleName(), "Build number already sent ");
+//		}
+		
 		
 		//Reschedule
 		reschedulePeriodicChecking();
@@ -213,4 +248,41 @@ public class PeriodicCheckService extends IntentService {
 		PendingIntent pending = PendingIntent.getBroadcast(getApplicationContext(), 0, newIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 		mgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + Util.PERIODIC_CHECK_INTERVAL, pending);
 	}
+	
+	
+	//Method to send heartbeat updates to the server
+		private void sendHeartbeatMessage(List<NameValuePair> nameValuePairs)
+		{
+			try {
+				DefaultHttpClient httpclient = new DefaultHttpClient();
+				HttpPost httpost = new HttpPost(Util.DEVICE_STATUS_UPLOAD_URL);
+				String response = "";
+				ResponseHandler<String> responseHandler = new BasicResponseHandler();
+				
+				
+				httpost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+				Log.i("PhoneLab-" + getClass().getSimpleName(), "Post URI is:: "+httpost.getURI().toString());
+				Log.d("PhoneLab-" + getClass().getSimpleName(), "Namevalue pairs for the post request "+nameValuePairs.toString());
+				response = httpclient.execute(httpost,responseHandler);
+				
+				JSONObject responseJ = new JSONObject(response);
+				
+				if (responseJ.getString("error").equals("")) {//success
+					Log.i("PhoneLab-" + getClass().getSimpleName(), "Message successfully sent : ");
+					//Code to send build number only once to server
+					if(nameValuePairs.toString().indexOf("build_version")>-1){
+						SharedPreferences settings = getApplicationContext().getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
+						Editor editor = settings.edit();
+						editor.putBoolean(Util.BUILD_NUMBER_SENT, true);
+						editor.commit();
+					}
+					
+				} else {//error
+					Log.e("PhoneLab-" + getClass().getSimpleName(), "Oops!, some problem, Message transmission failed : ");
+					Log.v("PhoneLab-" + getClass().getSimpleName(), responseJ.toString());
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 }

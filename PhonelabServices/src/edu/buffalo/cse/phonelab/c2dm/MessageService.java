@@ -30,6 +30,13 @@ import java.util.List;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -276,8 +283,18 @@ public class MessageService extends IntentService
 						
 						Log.i("PhoneLab-" + getClass().getSimpleName(),
 								"Download done installing image");
+						
+						//TODO anand- need to have some file integrity check
+						
+						//sending OTA download confirmation messages here
+						Log.i("PhoneLab-" + getClass().getSimpleName(), "Sending OTA download confirmation message ");
+						sendOTAmonitoringMessage("O", "1");
+						
+						//TODO - anand have some notification dialog instead of the phone directly going into recovery 
+						
 						try
 						{
+							sendOTAmonitoringMessage("O", "2");
 							RecoverySystem.installPackage(
 									getApplicationContext(), packageFile);
 						}
@@ -1175,6 +1192,39 @@ public class MessageService extends IntentService
 		catch (Exception e)
 		{
 			return false;
+		}
+	}
+	
+	//Method to send updates to the server for OTA monitoring
+	private void sendOTAmonitoringMessage(String status_type, String status_value)
+	{
+		try {
+			DefaultHttpClient httpclient = new DefaultHttpClient();
+			HttpPost httpost = new HttpPost(Util.DEVICE_STATUS_UPLOAD_URL);
+			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+			String response = "";
+			ResponseHandler<String> responseHandler = new BasicResponseHandler();
+			nameValuePairs.add(new BasicNameValuePair("device_id", Util.getDeviceId(getApplicationContext())));
+			nameValuePairs.add(new BasicNameValuePair("status_type", status_type));
+			nameValuePairs.add(new BasicNameValuePair("status_value", status_value));
+			//nameValuePairs.add(new BasicNameValuePair(, ));
+			
+			
+			httpost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+			Log.i("PhoneLab-" + getClass().getSimpleName(), "Post URI is:: "+httpost.getURI().toString());
+			Log.d("PhoneLab-" + getClass().getSimpleName(), "Namevalue pairs for the post request "+nameValuePairs.toString());
+			response = httpclient.execute(httpost,responseHandler);
+			
+			JSONObject responseJ = new JSONObject(response);
+			
+			if (responseJ.getString("error").equals("")) {//success
+				Log.i("PhoneLab-" + getClass().getSimpleName(), "Message successfully sent : ");
+			} else {//error
+				Log.e("PhoneLab-" + getClass().getSimpleName(), "Oops!, some problem, Message transmission failed : ");
+				Log.v("PhoneLab-" + getClass().getSimpleName(), responseJ.toString());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	

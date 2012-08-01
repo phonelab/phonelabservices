@@ -19,10 +19,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import edu.buffalo.cse.phonelab.utilities.Locks;
 import edu.buffalo.cse.phonelab.utilities.Util;
@@ -40,8 +42,14 @@ public class RegistrationService extends IntentService {
 		Bundle extras = intent.getExtras();
 		String deviceId = extras.getString("device_id");
 		String regId = extras.getString("reg_id");
-		
+		//getting the devices's phone number
+		TelephonyManager tMgr =(TelephonyManager)getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
+		String num = tMgr.getLine1Number();
+		if(num == null){
+			num = "0";
+		}
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Registration Id: " + regId);
+		Log.i("PhoneLab-" + getClass().getSimpleName(), "Phone Number: " + num);
 		Log.i("PhoneLab-" + getClass().getSimpleName(), "Sending registration ID to server");
 		HttpClient client = new DefaultHttpClient();
 		HttpPost post = new HttpPost(Util.URLTOUPLOAD); 
@@ -50,6 +58,7 @@ public class RegistrationService extends IntentService {
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);
 			nameValuePairs.add(new BasicNameValuePair("device_id", deviceId));
 			nameValuePairs.add(new BasicNameValuePair("reg_id", regId));
+			nameValuePairs.add(new BasicNameValuePair("phone_no", num));
 			post.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 			String response = client.execute(post, responseHandler);
 			Log.i("PhoneLab-" + getClass().getSimpleName(), response);
