@@ -270,12 +270,12 @@ public class PeriodicCheckService extends IntentService {
 				if (responseJ.getString("error").equals("")) {//success
 					Log.i("PhoneLab-" + getClass().getSimpleName(), "Message successfully sent : ");
 					//Code to send build number only once to server
-					if(nameValuePairs.toString().indexOf("build_version")>-1){
-						SharedPreferences settings = getApplicationContext().getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
-						Editor editor = settings.edit();
-						editor.putBoolean(Util.BUILD_NUMBER_SENT, true);
-						editor.commit();
-					}
+//					if(nameValuePairs.toString().indexOf("build_version")>-1){
+//						SharedPreferences settings = getApplicationContext().getSharedPreferences(Util.SHARED_PREFERENCES_FILE_NAME, 0);
+//						Editor editor = settings.edit();
+//						editor.putBoolean(Util.BUILD_NUMBER_SENT, true);
+//						editor.commit();
+//					}
 					
 				} else {//error
 					Log.e("PhoneLab-" + getClass().getSimpleName(), "Oops!, some problem, Message transmission failed : ");
