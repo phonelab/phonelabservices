@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import java.util.List;
 
 import javax.xml.transform.TransformerException;
@@ -40,10 +39,11 @@ import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.DownloadManager;
 import android.app.IntentService;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -51,21 +51,10 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.ResultReceiver;
 import android.os.SystemClock;
-//Recovery system needs android.os.RecoverySystem
-import android.os.RecoverySystem;
-import android.os.Build.VERSION;
-import android.app.DownloadManager;
-import android.net.Uri;
-import android.content.BroadcastReceiver;
-import android.content.IntentFilter;
-import android.widget.Toast;
-
 import android.util.Log;
+import android.widget.Toast;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabApplication;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabManifest;
 import edu.buffalo.cse.phonelab.manifest.PhoneLabParameter;
@@ -226,6 +215,8 @@ public class MessageService extends IntentService
 				{
 					getApplicationContext();
 					DownloadManager downloadmanager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+					
+					
 
 					/*
 					 * if(isDownloadManagerAvailable(getApplicationContext())){
@@ -270,6 +261,9 @@ public class MessageService extends IntentService
 					 * 
 					 */
 					
+					// add battery and Wifi Check
+					
+					
 					Log.i("PhoneLab-" + getClass().getSimpleName(),
 							"Starting new image download");
 					if (DownloadFile.downloadToDirectory(this,
@@ -292,13 +286,24 @@ public class MessageService extends IntentService
 						
 						//TODO - anand have some notification dialog instead of the phone directly going into recovery 
 						
+						
+						//Notifications
+						
+						
 						try
 						{
-							sendOTAmonitoringMessage("O", "2");
-							RecoverySystem.installPackage(
-									getApplicationContext(), packageFile);
+//							sendOTAmonitoringMessage("O", "2");
+//							RecoverySystem.installPackage(
+//									getApplicationContext(), packageFile);
+							
+							AlarmManager mgr = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+							Intent newIntent = new Intent(getApplicationContext(), edu.buffalo.cse.phonelab.ota.OTANotifier.class);
+							PendingIntent pending = PendingIntent.getBroadcast(getApplicationContext(), 0, newIntent, 0);
+							//long scheduletime = 1000*60*2;//2 minutes
+							mgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() , pending);
+							
 						}
-						catch (IOException e)
+						catch (Exception e)
 						{
 							e.printStackTrace();
 						}
