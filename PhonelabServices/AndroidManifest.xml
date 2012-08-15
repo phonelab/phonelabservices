@@ -111,6 +111,9 @@
         </service>
         <service android:name="edu.buffalo.cse.phonelab.utilities.UploadLogs" >
         </service>
+        
+        <service android:name="edu.buffalo.cse.phonelab.ota.OTADownloader" >
+        </service>
 
         <activity android:name="SettingsView" >
         </activity>

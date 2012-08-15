@@ -23,14 +23,14 @@ import android.widget.Toast;
 public class PHLabOTAUpdateManager extends Activity
 {
 	private int					battery_level	= -1;
-
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 		Log.d("PhoneLab-"+ getClass().getSimpleName(), "Displaying the update Dialog");
 
-		this.registerReceiver(this.batteryInfoReceiver, new IntentFilter(
+		registerReceiver(this.batteryInfoReceiver, new IntentFilter(
 				Intent.ACTION_BATTERY_CHANGED));
 		
 		Builder builder = new AlertDialog.Builder(this);
@@ -43,24 +43,14 @@ public class PHLabOTAUpdateManager extends Activity
 	}
 
 	private BroadcastReceiver	batteryInfoReceiver	= new BroadcastReceiver()
-													{
-														@Override
-														public void onReceive(
-																Context arg0,
-																Intent intent)
-														{
-															// TODO
-															// Auto-generated
-															// method stub
-															battery_level = intent
-																	.getIntExtra(
-																			"level",
-																			0);
-															// text.append(String.valueOf(level)
-															// + "%");
-															arg0.unregisterReceiver(this);
-														}
-													};
+	{
+		@Override
+		public void onReceive(Context arg0,	Intent intent)
+		{
+			battery_level = intent.getIntExtra("level",	0);
+			arg0.unregisterReceiver(this);
+		}
+	};
 
 	
 	private final class LaterListener implements
@@ -81,6 +71,8 @@ public class PHLabOTAUpdateManager extends Activity
 	private final class InstallNowListener implements
 			DialogInterface.OnClickListener
 	{
+		
+
 		public void onClick(DialogInterface dialog, int which)
 		{
 			// Check for battery status, if more than 60% or plugged in, go
@@ -99,15 +91,32 @@ public class PHLabOTAUpdateManager extends Activity
 				File packageFile = new File(
 						Environment.getDownloadCacheDirectory()
 								+ "/ota.zip");
+				Log.d("PhoneLab-"+ getClass().getSimpleName(), "The OTA file path is "+ packageFile.getAbsolutePath());
 				
-				try
+				if(packageFile.exists())
 				{
-					RecoverySystem.installPackage(
-							getApplicationContext(), packageFile);
+				
+					try
+					{
+						RecoverySystem.installPackage(
+								getApplicationContext(), packageFile);
+					}
+					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
 				}
-				catch (IOException e)
+				else// file does not exist, try to download the file to complete the update
 				{
-					e.printStackTrace();
+					Log.wtf("PhoneLab-"+ getClass().getSimpleName(), "OTA file not found");
+					//download now if wifi plugged in and battery > 70%, also implement progress bar 
+									
+					//check for wifi connection, if not connected prompt user, else reschedule the update
+
+					// Use this to download the file again
+//					DownloadFile downloadFile = new DownloadFile();
+//					downloadFile.execute(Util.OTA_DOWNLOAD_URL + "ota.zip");					
+					
 				}
 
 			}
@@ -126,8 +135,7 @@ public class PHLabOTAUpdateManager extends Activity
 									{
 										
 										rescheduleOTANotification();
-										PHLabOTAUpdateManager.this.finish();
-										//dialog.cancel();
+										PHLabOTAUpdateManager.this.finish();										
 									}
 								});
 				AlertDialog alert = builder.create();
@@ -137,6 +145,8 @@ public class PHLabOTAUpdateManager extends Activity
 		}
 	}
 	
+	
+	
 	private void rescheduleOTANotification(){
 		AlarmManager mgr = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
 		Intent newIntent = new Intent(getApplicationContext(), OTANotifier.class);
@@ -144,5 +154,9 @@ public class PHLabOTAUpdateManager extends Activity
 		long scheduletime = 1000*60*4*60;//4 hours
 		mgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + scheduletime, pending);
 	}
+	
+	
+	
+	
 
 }
