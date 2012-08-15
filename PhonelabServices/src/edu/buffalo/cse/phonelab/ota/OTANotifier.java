@@ -1,6 +1,7 @@
 package edu.buffalo.cse.phonelab.ota;
 
 import edu.buffalo.cse.phonelab.phonelabservices.R;
+import edu.buffalo.cse.phonelab.utilities.Util;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -14,6 +15,7 @@ public class OTANotifier extends BroadcastReceiver
 	@Override
 	public void onReceive(Context context, Intent intent1) 
 	{
+		String path = intent1.getStringExtra(Util.DOWNLOADED_OTA_FILE_FILEPATH);
 		String ns = Context.NOTIFICATION_SERVICE;
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(ns);
         
@@ -21,6 +23,7 @@ public class OTANotifier extends BroadcastReceiver
         
 		Intent intent = new Intent(context,
 				PHLabOTAUpdateManager.class);
+		intent.putExtra(Util.DOWNLOADED_OTA_FILE_FILEPATH, path);
        // intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		PendingIntent activity = PendingIntent.getActivity(context, 0, intent, 0);
 		

@@ -1,7 +1,12 @@
 package edu.buffalo.cse.phonelab.ota;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
+
+import edu.buffalo.cse.phonelab.utilities.Util;
 
 import android.app.Activity;
 import android.app.AlarmManager;
@@ -23,11 +28,17 @@ import android.widget.Toast;
 public class PHLabOTAUpdateManager extends Activity
 {
 	private int					battery_level	= -1;
+	private String              ota_path;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+		
+		Intent intent= getIntent();
+		ota_path = intent.getStringExtra(Util.DOWNLOADED_OTA_FILE_FILEPATH);
+		
+		
 		Log.d("PhoneLab-"+ getClass().getSimpleName(), "Displaying the update Dialog");
 
 		registerReceiver(this.batteryInfoReceiver, new IntentFilter(
@@ -91,6 +102,48 @@ public class PHLabOTAUpdateManager extends Activity
 				File packageFile = new File(
 						Environment.getDownloadCacheDirectory()
 								+ "/ota.zip");
+				
+				File downloadedpackageFile = new File(ota_path);
+				
+				//copy the file to download cache directory
+				 FileChannel source = null;
+				    FileChannel destination = null;
+				    try {
+				        source = new FileInputStream(downloadedpackageFile).getChannel();
+				        destination = new FileOutputStream(packageFile).getChannel();
+
+				        // previous code: destination.transferFrom(source, 0, source.size());
+				        // to avoid infinite loops, should be:
+				        long count = 0;
+				        long size = source.size();              
+				        while((count += destination.transferFrom(source, count, size-count))<size);
+				    }
+				    catch(Exception e){
+				    	e.printStackTrace();
+				    }
+				    finally {
+				        if(source != null) {
+				            try
+							{
+								source.close();
+							}
+							catch (IOException e)
+							{
+								e.printStackTrace();
+							}
+				        }
+				        if(destination != null) {
+				            try
+							{
+								destination.close();
+							}
+							catch (IOException e)
+							{
+								e.printStackTrace();
+							}
+				        }
+				    }
+				
 				Log.d("PhoneLab-"+ getClass().getSimpleName(), "The OTA file path is "+ packageFile.getAbsolutePath());
 				
 				if(packageFile.exists())
@@ -106,16 +159,9 @@ public class PHLabOTAUpdateManager extends Activity
 						e.printStackTrace();
 					}
 				}
-				else// file does not exist, try to download the file to complete the update
+				else
 				{
-					Log.wtf("PhoneLab-"+ getClass().getSimpleName(), "OTA file not found");
-					//download now if wifi plugged in and battery > 70%, also implement progress bar 
-									
-					//check for wifi connection, if not connected prompt user, else reschedule the update
-
-					// Use this to download the file again
-//					DownloadFile downloadFile = new DownloadFile();
-//					downloadFile.execute(Util.OTA_DOWNLOAD_URL + "ota.zip");					
+					Log.wtf("PhoneLab-"+ getClass().getSimpleName(), "OTA file not found");				
 					
 				}
 

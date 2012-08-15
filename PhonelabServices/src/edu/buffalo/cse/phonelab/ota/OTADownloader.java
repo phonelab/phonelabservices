@@ -1,6 +1,8 @@
 package edu.buffalo.cse.phonelab.ota;
 
+import android.app.AlarmManager;
 import android.app.DownloadManager;
+import android.app.PendingIntent;
 import android.app.DownloadManager.Query;
 import android.app.IntentService;
 import android.content.BroadcastReceiver;
@@ -9,7 +11,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.SystemClock;
 import android.util.Log;
+import edu.buffalo.cse.phonelab.phonelabservices.PeriodicCheckReceiver;
 import edu.buffalo.cse.phonelab.utilities.Util;
 
 /**
@@ -28,23 +32,22 @@ public class OTADownloader extends IntentService
 	{
 		super("OTADownloader");
 	}
-	
-	
 
 	@Override
 	protected void onHandleIntent(Intent intent)
 	{
-		
-		
+
 		OTADownloadCompletedReceiver receiver = new OTADownloadCompletedReceiver();
 
 		registerReceiver(receiver, new IntentFilter(
 				DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-		
+
 		String url = intent.getStringExtra(Util.OTA_DOWNLOAD);
-		Log.i("PhoneLab-"+ getClass().getSimpleName(), "Enqueing downloadrequest, The file path is: "+getApplicationContext().getExternalFilesDir(null)+" The download URL is " + url);
-		
-		
+		Log.i("PhoneLab-" + getClass().getSimpleName(),
+				"Enqueing downloadrequest, The file path is: "
+						+ getApplicationContext().getExternalFilesDir(null)
+						+ " The download URL is " + url);
+
 		DownloadManager.Request request = new DownloadManager.Request(
 				Uri.parse(url))
 				.setDescription("Downloading Phonelab update.")
@@ -54,13 +57,11 @@ public class OTADownloader extends IntentService
 				.setVisibleInDownloadsUi(false)
 				.setNotificationVisibility(
 						DownloadManager.Request.VISIBILITY_HIDDEN);
-		
 
 		// get download service and enqueue file
 		downloadmanager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 		enqueueid = downloadmanager.enqueue(request);
 
-		
 	}
 
 	private class OTADownloadCompletedReceiver extends BroadcastReceiver
@@ -85,10 +86,18 @@ public class OTADownloader extends IntentService
 							.getInt(columnIndex))
 					{
 						// successfully downloaded
+						String path = c
+								.getString(c
+										.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI));
 						Log.i("PhoneLab-" + getClass().getSimpleName(),
 								"Successfully downloaded the OTA image, The OTA file path is "
-										+ c.getString(c
-												.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI)));
+										+ path);
+						AlarmManager mgr = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+						Intent newIntent = new Intent(getApplicationContext(), OTANotifier.class);
+						newIntent.putExtra(Util.DOWNLOADED_OTA_FILE_FILEPATH,path);
+						PendingIntent pending = PendingIntent.getBroadcast(getApplicationContext(), 0, newIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+						mgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() , pending);
+
 					}
 				}
 			}
