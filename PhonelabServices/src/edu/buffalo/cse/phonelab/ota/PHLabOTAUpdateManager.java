@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.channels.FileChannel;
 
 import edu.buffalo.cse.phonelab.utilities.Util;
@@ -28,7 +29,7 @@ import android.widget.Toast;
 public class PHLabOTAUpdateManager extends Activity
 {
 	private int					battery_level	= -1;
-	private String              ota_path;
+	private String              ota_path_uri;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -36,7 +37,7 @@ public class PHLabOTAUpdateManager extends Activity
 		super.onCreate(savedInstanceState);
 		
 		Intent intent= getIntent();
-		ota_path = intent.getStringExtra(Util.DOWNLOADED_OTA_FILE_FILEPATH);
+		ota_path_uri = intent.getStringExtra(Util.DOWNLOADED_OTA_FILE_FILEPATH_URI);
 		
 		
 		Log.d("PhoneLab-"+ getClass().getSimpleName(), "Displaying the update Dialog");
@@ -103,12 +104,13 @@ public class PHLabOTAUpdateManager extends Activity
 						Environment.getDownloadCacheDirectory()
 								+ "/ota.zip");
 				
-				File downloadedpackageFile = new File(ota_path);
+				
 				
 				//copy the file to download cache directory
 				 FileChannel source = null;
 				    FileChannel destination = null;
 				    try {
+				    	File downloadedpackageFile = new File(new URI(ota_path_uri));
 				        source = new FileInputStream(downloadedpackageFile).getChannel();
 				        destination = new FileOutputStream(packageFile).getChannel();
 

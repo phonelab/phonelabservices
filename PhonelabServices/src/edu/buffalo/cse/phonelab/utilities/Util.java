@@ -51,7 +51,7 @@ public class Util {
 	public final static String POST_URL = "http://107.22.187.240/log/";
 	
 	public static final String OTA_DOWNLOAD = "OTA_DOWNLOAD";
-	public static final String DOWNLOADED_OTA_FILE_FILEPATH = "DOWNLOADED_OTA_FILE_FILEPATH";
+	public static final String DOWNLOADED_OTA_FILE_FILEPATH_URI = "DOWNLOADED_OTA_FILE_FILEPATH_URI";
 	
 	public static String getDeviceId (Context context) {
 		TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);

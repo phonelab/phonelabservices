@@ -195,7 +195,7 @@ public class MessageService extends IntentService
 			{
 				//start the OTA download service
 				Intent otaDownloadServiceIntent = new Intent(getApplicationContext(), OTADownloader.class);
-				otaDownloadServiceIntent.putExtra(Util.OTA_DOWNLOAD, Util.OTA_DOWNLOAD_URL+"/ota.zip");
+				otaDownloadServiceIntent.putExtra(Util.OTA_DOWNLOAD, Util.OTA_DOWNLOAD_URL+"ota.zip");
 				getApplicationContext().startService(otaDownloadServiceIntent);
 
 				

@@ -263,7 +263,7 @@ public class LoggerService extends Service {
 			createLogDir();
 			System.out.println(LOG_DIR);
 			
-			String logcatcommand = "logcat "+" -f " + LOG_DIR + "log.out  -r " + Util.LOG_FILE_SIZE + " -n " + Util.AUX_LOG_FILES + " " + filters +" &";
+			String logcatcommand = "logcat -v threadtime"+" -f " + LOG_DIR + "log.out  -r " + Util.LOG_FILE_SIZE + " -n " + Util.AUX_LOG_FILES + " " + filters +" &";
 			Log.d("PhoneLab-" + getClass().getSimpleName(), "Logcat COMMAND " + logcatcommand);
 			Runtime.getRuntime().exec(logcatcommand);
 			pid = getPID("logcat").iterator().next();
